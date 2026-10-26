@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>A Little World</title>
+    <meta name="description" content="A small virtual museum, made as a gift." />
+    <meta name="theme-color" content="#1f1915" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f1915'/%3E%3Cpath d='M9 25V14a7 7 0 0 1 14 0v11' fill='none' stroke='%23d8c3a0' stroke-width='1.8'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="app" data-phase="intro">
+      <canvas id="scene" tabindex="0" aria-label="Interactive 3D museum. Use the buttons below, or the left and right arrow keys, to move between pieces. Press Enter to look closer."></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="shade shade--top" aria-hidden="true"></div>
+      <div class="shade shade--bottom" aria-hidden="true"></div>
+
+      <!-- Opening -->
+      <section id="intro" class="intro" aria-labelledby="introTitle">
+        <div class="intro__inner">
+          <h1 id="introTitle" class="intro__title"></h1>
+          <p id="introSub" class="intro__sub"></p>
+          <button id="enterBtn" class="btn btn--primary" type="button"><span id="enterLabel"></span></button>
+          <p class="intro__note">Sound stays off until you choose it.</p>
+        </div>
+      </section>
+
+      <!-- HUD -->
+      <header id="hud" class="hud" hidden>
+        <button id="btnEntrance" class="chip" type="button" aria-label="Return to the museum entrance">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V10a7 7 0 0 1 14 0v11M3 21h18M12 21V13" /></svg>
+          <span>Entrance</span>
+        </button>
+        <div class="hud__right">
+          <button id="btnMusic" class="chip chip--icon" type="button" aria-pressed="false" aria-label="Turn music on">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3Zm10-2a3 3 0 1 1-3-3 3 3 0 0 1 3 3Z" /></svg>
+            <i class="slash" aria-hidden="true"></i>
+          </button>
+          <button id="btnHelp" class="chip chip--icon" type="button" aria-label="How to explore">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8M12 17h.01" /></svg>
+          </button>
+          <button id="btnMenu" class="chip" type="button" aria-expanded="false" aria-controls="menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16" /></svg>
+            <span>Rooms</span>
+          </button>
+        </div>
+      </header>
+
+      <div id="roomCaption" class="caption" aria-hidden="true">
+        <span class="caption__num"></span>
+        <span class="caption__name"></span>
+        <span class="caption__blurb"></span>
+      </div>
+
+      <div id="heartLine" class="heartline" aria-hidden="true"></div>
+
+      <p id="hint" class="hint" role="status"></p>
+
+      <footer id="dock" class="dock" hidden>
+        <ol id="progress" class="progress" aria-label="Museum rooms"></ol>
+        <div class="dock__bar">
+          <button id="btnPrev" class="nav" type="button" aria-label="Previous">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <button id="btnLook" class="look" type="button"><span></span></button>
+          <button id="btnNext" class="nav" type="button" aria-label="Next">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+        <p id="stopLabel" class="stoplabel"></p>
+      </footer>
+
+      <button id="btnSkip" class="chip skip" type="button" hidden>Skip</button>
+
+      <!-- Room menu -->
+      <nav id="menu" class="menu" aria-label="Rooms" hidden>
+        <div class="menu__head">
+          <p class="eyebrow">The Museum</p>
+          <button id="menuClose" class="x" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+        </div>
+        <ol id="menuList" class="menu__list"></ol>
+        <p class="menu__foot">Drag to look around. Arrow keys move between pieces.</p>
+      </nav>
+      <div id="menuScrim" class="scrim" hidden></div>
+
+      <!-- Memory / milestone / heart panel -->
+      <aside id="panel" class="panel" role="dialog" aria-modal="false" aria-labelledby="panelTitle" hidden>
+        <button id="panelClose" class="x" type="button" aria-label="Close and return to the museum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+        <p id="panelEyebrow" class="eyebrow"></p>
+        <h2 id="panelTitle" class="panel__title"></h2>
+        <p id="panelDate" class="panel__date"></p>
+        <div class="rule" aria-hidden="true"></div>
+        <figure id="panelFigure" class="panel__figure" hidden><img id="panelImg" alt="" /></figure>
+        <p id="panelText" class="panel__text"></p>
+        <div id="panelNav" class="panel__nav">
+          <button id="panelPrev" class="nav nav--sm" type="button" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
+          <span id="panelCount"></span>
+          <button id="panelNext" class="nav nav--sm" type="button" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
+        </div>
+      </aside>
+
+      <!-- Letter reader -->
+      <div id="letter" class="letter" role="dialog" aria-modal="true" aria-labelledby="letterHeading" hidden>
+        <div class="letter__scroll" id="letterScroll">
+          <article class="letter__paper" id="letterPaper">
+            <button id="letterClose" class="x x--paper" type="button" aria-label="Close the letter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+            <p class="eyebrow" id="letterEyebrow"></p>
+            <h2 id="letterHeading" class="letter__heading"></h2>
+            <div class="rule" aria-hidden="true"></div>
+            <p id="letterGreeting" class="letter__greeting"></p>
+            <div id="letterBody" class="letter__body"></div>
+            <p id="letterSign" class="letter__sign"></p>
+            <div class="rule rule--end" aria-hidden="true"></div>
+            <p id="letterClosing" class="letter__closing"></p>
+            <button id="letterDone" class="btn btn--paper" type="button">Return to the museum</button>
+          </article>
+        </div>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="sr" class="sr" aria-live="polite"></div>
+
+      <!-- Shown when 3D cannot run -->
+      <div id="fallback" class="fallback" hidden></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
