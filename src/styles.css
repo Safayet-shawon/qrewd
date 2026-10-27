@@ -502,6 +502,46 @@ svg {
   min-height: 1.3em;
 }
 
+.joy {
+  position: absolute;
+  z-index: 4;
+  left: calc(var(--safe-l) + 18px);
+  bottom: calc(var(--safe-b) + 158px);
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 1px solid rgba(246, 240, 230, 0.4);
+  background: rgba(27, 21, 17, 0.28);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  touch-action: none;
+  display: none;
+}
+.joy__knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 50%;
+  background: rgba(240, 220, 180, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+@media (pointer: coarse) {
+  #app[data-walk='1'] .joy {
+    display: block;
+  }
+}
+#app[data-walk='1'] #btnPrev,
+#app[data-walk='1'] #btnNext {
+  display: none;
+}
+#app[data-walk='1'] .chip[aria-pressed='true'] {
+  border-color: rgba(240, 220, 180, 0.75);
+}
+
 .skip {
   position: absolute;
   z-index: 6;

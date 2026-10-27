@@ -72,6 +72,9 @@ export function createUI(content, rooms) {
   wire('btnNext', 'next');
   wire('btnLook', 'look');
   wire('btnEntrance', 'entrance');
+  wire('btnWalk', 'walk');
+  const joy = $('joy');
+  const knob = joy.querySelector('.joy__knob');
   wire('btnMusic', 'music');
   wire('panelClose', 'panelClose');
   wire('panelPrev', 'panelPrev');
@@ -114,19 +117,54 @@ export function createUI(content, rooms) {
   };
 
   let current = null;
+  let walkOn = false;
+  const markRoom = (index) => {
+    progress.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', i === index ? 'true' : 'false'));
+    menuList.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', i === index ? 'true' : 'false'));
+  };
   ui.setStop = (stop, count) => {
     current = stop;
-    progress.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', i === stop.roomIndex ? 'true' : 'false'));
-    menuList.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', i === stop.roomIndex ? 'true' : 'false'));
+    markRoom(stop.roomIndex);
     el.stopLabel.textContent = stop.label;
     el.prev.disabled = stop.index === 0;
     el.next.disabled = stop.index === count - 1;
+    $('sr').textContent = stop.label;
+    if (walkOn) return;
     const featured = !!stop.featured;
     el.look.classList.toggle('is-empty', !featured);
     el.look.disabled = !featured;
     el.look.firstElementChild.textContent = stop.cue || '';
-    $('sr').textContent = stop.label;
   };
+
+  /** Walk mode: the girl's room, shown in the progress bar and menu. */
+  ui.setRoom = (index, name) => {
+    markRoom(index);
+    if (name) el.stopLabel.textContent = name;
+  };
+
+  /** Walk mode: label for the thing in front of the girl, or null when nothing is near. */
+  ui.setNearby = (label) => {
+    el.look.classList.toggle('is-empty', !label);
+    el.look.disabled = !label;
+    if (label) el.look.firstElementChild.textContent = label;
+  };
+
+  ui.setWalkMode = (on) => {
+    walkOn = on;
+    app.dataset.walk = on ? '1' : '';
+    $('btnWalk').setAttribute('aria-pressed', String(on));
+    $('btnWalk').setAttribute('aria-label', on ? 'Stop walking' : 'Walk around');
+    $('btnWalk').querySelector('span').textContent = on ? 'Stop' : 'Walk';
+    el.prev.disabled = on;
+    el.next.disabled = on;
+    if (!on) return;
+    el.look.classList.add('is-empty');
+    el.look.disabled = true;
+    el.look.firstElementChild.textContent = '';
+    ui.hint(touch ? 'Drag the circle to walk. Drag the screen to turn.' : 'Walk with W A S D or the arrow keys. Drag to turn.', 7000);
+  };
+  ui.joyElement = joy;
+  ui.joyKnob = knob;
 
   let capTl = null;
   ui.showCaption = (room) => {

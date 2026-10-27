@@ -32,6 +32,10 @@
           <span>Entrance</span>
         </button>
         <div class="hud__right">
+          <button id="btnWalk" class="chip" type="button" aria-pressed="false" aria-label="Walk around">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2" /><path d="M10 9.5h4l1 5.5-2 1v5m-2-11.5L8 21m4-11.5 3 6.5" /></svg>
+            <span>Walk</span>
+          </button>
           <button id="btnMusic" class="chip chip--icon" type="button" aria-pressed="false" aria-label="Turn music on">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3Zm10-2a3 3 0 1 1-3-3 3 3 0 0 1 3 3Z" /></svg>
             <i class="slash" aria-hidden="true"></i>
@@ -71,6 +75,9 @@
       </footer>
 
       <button id="btnSkip" class="chip skip" type="button" hidden>Skip</button>
+
+      <!-- Touch joystick (walk mode, touch screens only) -->
+      <div id="joy" class="joy" role="application" aria-label="Walk: drag the circle to move"><div class="joy__knob"></div></div>
 
       <!-- Room menu -->
       <nav id="menu" class="menu" aria-label="Rooms" hidden>

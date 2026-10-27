@@ -9,6 +9,7 @@ import { LightPool } from './lighting.js';
 import { CameraRig } from './cameraRig.js';
 import { createDust, createEmbers } from './particles.js';
 import { ImageStore } from './frames.js';
+import { createCompanion } from './companion.js';
 import { skyTexture } from './textures.js';
 import { buildEntrance } from './rooms/entrance.js';
 import { buildGallery } from './rooms/gallery.js';
@@ -89,7 +90,7 @@ export async function createMuseum(canvas, content, quality) {
   const images = new ImageStore(renderer);
   const L = computeLayout(content);
 
-  const state = { reveal: 0.3, entered: false, locked: true, stop: 0, focused: null, time: 0 };
+  const state = { reveal: 0.3, entered: false, locked: true, stop: 0, focused: null, time: 0, walk: false };
   const dustUniformsPx = [];
   const ctx = {
     root,
@@ -221,6 +222,11 @@ export async function createMuseum(canvas, content, quality) {
     firstStop: stops.findIndex((s) => s.room === key),
   }));
 
+  /* ───────────── The couple (walk mode) ───────────── */
+  const companion = createCompanion(scene, L, ctx.items, content.timeline.length);
+  let lastRoom = -1;
+  let lastNearby = null;
+
   /* ───────────── Pose before entering: outside, doors closed ───────────── */
   const outsidePos = V(0, 1.7, 24);
   const outsideLook = V(0, 1.7, 0);
@@ -309,7 +315,8 @@ export async function createMuseum(canvas, content, quality) {
         canvas.style.cursor = 'grabbing';
         events.emit('dragstart');
       }
-      if (ptr.moved && !rig.moving) rig.nudge(dx, dy);
+      if (ptr.moved && state.walk) companion.turn(dx * 0.005);
+      else if (ptr.moved && !rig.moving) rig.nudge(dx, dy);
       return;
     }
     if (e.pointerType === 'mouse') {
@@ -377,6 +384,7 @@ export async function createMuseum(canvas, content, quality) {
 
   async function goToStop(i, { quick = false } = {}) {
     i = THREE.MathUtils.clamp(i, 0, stops.length - 1);
+    if (state.walk) leaveWalk();
     const s = stops[i];
     const prev = stops[state.stop];
     state.stop = i;
@@ -388,6 +396,52 @@ export async function createMuseum(canvas, content, quality) {
     const dist = rig.pos.distanceTo(s.pos);
     const d = quick ? 0.01 : dur(THREE.MathUtils.clamp(1.0 + dist * 0.075, 1.2, 4.2));
     return rig.moveTo(s.pos, s.look, { duration: d });
+  }
+
+  /* ───────────── Walk mode ───────────── */
+  function setWalkFlag(on) {
+    state.walk = on;
+    if (on) {
+      rig.kill();
+      rig.yaw = rig.pitch = rig._yaw = rig._pitch = 0;
+      setSway(0);
+    }
+    setHovered(null);
+    events.emit('walk', on);
+  }
+
+  function enterWalk() {
+    if (!state.entered || state.walk || state.focused) return;
+    const cam = rig.pos.clone();
+    const look = rig.look.clone();
+    companion.placeFromCamera(cam, look);
+    setWalkFlag(true);
+  }
+
+  function leaveWalk() {
+    if (!state.walk) return;
+    setWalkFlag(false);
+  }
+
+  /** Walk mode off, camera stays where it is: used just before an item is opened. */
+  function suspendWalk() {
+    if (state.walk) leaveWalk();
+  }
+
+  /** Walk mode off, and the camera glides to the nearest guided stop. */
+  function exitWalkToNearestStop() {
+    if (!state.walk) return Promise.resolve(true);
+    const g = companion.girlPosition();
+    let best = 0;
+    let bestD = Infinity;
+    stops.forEach((s, i) => {
+      const d = Math.hypot(s.pos.x - g.x, s.pos.z - g.z);
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    });
+    return goToStop(best);
   }
 
   /** Fit an item in view, leaving room for the panel that is about to open. */
@@ -416,6 +470,7 @@ export async function createMuseum(canvas, content, quality) {
   }
 
   async function focusItem(item, insets) {
+    suspendWalk();
     state.focused = item;
     setSway(0);
     rig.dragEnabled = false;
@@ -500,6 +555,24 @@ export async function createMuseum(canvas, content, quality) {
     last = now;
     state.time += dt;
     const t = state.time;
+
+    if (state.walk) {
+      const info = companion.update(dt, t, true);
+      const cam = companion.cameraTarget();
+      const k = 1 - Math.exp(-dt * 5);
+      rig.pos.lerp(cam.pos, k);
+      rig.look.lerp(cam.look, k);
+      if (info.room !== lastRoom) {
+        lastRoom = info.room;
+        events.emit('room', info.room);
+      }
+      if (info.nearby !== lastNearby) {
+        lastNearby = info.nearby;
+        events.emit('nearby', info.nearby);
+      }
+    } else {
+      companion.update(dt, t, false);
+    }
 
     rig.update(dt, t, ctx.reduced());
     camera.getWorldDirection(fwd);
@@ -592,6 +665,19 @@ export async function createMuseum(canvas, content, quality) {
     playEntrance,
     skipEntrance: () => skipEntrance?.(),
     goToStop,
+    get walking() {
+      return state.walk;
+    },
+    setWalk(on) {
+      if (on) enterWalk();
+      else return exitWalkToNearestStop();
+      return Promise.resolve(true);
+    },
+    suspendWalk,
+    /** x: right, y: forward (both -1..1). turn: -1 left, 1 right. */
+    setMove(x, y, turn = 0) {
+      companion.setInput(x, y, turn);
+    },
     /** Record a new current stop without moving the camera (used when stepping through panel items). */
     markStop(i) {
       const prev = stops[state.stop];

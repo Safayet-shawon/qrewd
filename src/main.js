@@ -63,11 +63,19 @@ function showPanel(kind, index) {
   if (list) ui.setPanelNav({ prevEnabled: index > 0, nextEnabled: index < list.length - 1 });
 }
 
+/** Label for the button when the walking girl stands in front of something. */
+function nearbyLabel(item) {
+  return { memory: 'View photograph', milestone: 'Open this moment', heart: 'Touch the heart', letter: 'Open the letter', plaque: 'Read the plaque' }[item.kind] || 'Look closer';
+}
+
+let nearbyItem = null;
+
 async function openItem(item) {
   if (!museum || overlay || !museum.entered) return;
   const my = ++session;
   ui.closeMenu();
   ui.hint(null);
+  museum.suspendWalk();
   const idx = museum.stops.findIndex((s) => s.featured === item);
   if (idx >= 0 && idx !== museum.stopIndex) museum.markStop(idx);
   museum.setLocked(true);
@@ -138,11 +146,23 @@ function wireMuseum() {
   });
   museum.events.on('select', openItem);
   museum.events.on('dragstart', () => ui.hint(null));
+  museum.events.on('walk', (on) => ui.setWalkMode(on));
+  museum.events.on('room', (index) => {
+    ui.setRoom(index, rooms[index].name);
+    ui.showCaption(rooms[index]);
+  });
+  museum.events.on('nearby', (item) => {
+    nearbyItem = item;
+    ui.setNearby(item ? nearbyLabel(item) : null);
+  });
+  ui.on('walk', () => {
+    if (!overlay) museum.setWalk(!museum.walking);
+  });
 
   ui.on('prev', () => !overlay && museum.prev());
   ui.on('next', () => !overlay && museum.next());
   ui.on('look', () => {
-    const f = museum.stops[museum.stopIndex]?.featured;
+    const f = museum.walking ? nearbyItem : museum.stops[museum.stopIndex]?.featured;
     if (f) openItem(f);
   });
   ui.on('room', async (key) => {
@@ -175,11 +195,90 @@ ui.on('enter', async () => {
   document.getElementById('scene').focus({ preventScroll: true });
 });
 
+/* ───────────────────────── Walk controls (keyboard + joystick) ───────────────────────── */
+
+const held = new Set();
+const joyVec = { x: 0, y: 0 };
+const WALK_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
+function refreshMove() {
+  if (!museum) return;
+  let x = joyVec.x;
+  let y = joyVec.y;
+  let turn = 0;
+  if (held.has('KeyW') || held.has('ArrowUp')) y += 1;
+  if (held.has('KeyS') || held.has('ArrowDown')) y -= 1;
+  if (held.has('KeyD')) x += 1;
+  if (held.has('KeyA')) x -= 1;
+  if (held.has('ArrowRight')) turn += 1;
+  if (held.has('ArrowLeft')) turn -= 1;
+  museum.setMove(x, y, turn);
+}
+
+const joy = ui.joyElement;
+const knob = ui.joyKnob;
+let joyId = -1;
+
+function joyMove(e) {
+  const r = joy.getBoundingClientRect();
+  const max = r.width * 0.36;
+  let dx = e.clientX - (r.left + r.width / 2);
+  let dy = e.clientY - (r.top + r.height / 2);
+  const len = Math.hypot(dx, dy);
+  if (len > max) {
+    dx = (dx / len) * max;
+    dy = (dy / len) * max;
+  }
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  joyVec.x = dx / max;
+  joyVec.y = -dy / max; // up on screen = forward
+  refreshMove();
+}
+function joyEnd(e) {
+  if (e.pointerId !== joyId) return;
+  joyId = -1;
+  joyVec.x = 0;
+  joyVec.y = 0;
+  knob.style.transform = '';
+  refreshMove();
+}
+joy.addEventListener('pointerdown', (e) => {
+  joyId = e.pointerId;
+  joy.setPointerCapture(e.pointerId);
+  joyMove(e);
+  e.preventDefault();
+});
+joy.addEventListener('pointermove', (e) => {
+  if (e.pointerId === joyId) joyMove(e);
+});
+joy.addEventListener('pointerup', joyEnd);
+joy.addEventListener('pointercancel', joyEnd);
+
+window.addEventListener('blur', () => {
+  held.clear();
+  refreshMove();
+});
+
+window.addEventListener('keyup', (e) => {
+  if (held.delete(e.code)) refreshMove();
+});
+
 window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') {
     if (ui.menuOpen()) ui.closeMenu();
     else if (overlay) closeOverlay();
+    else if (museum?.walking) museum.setWalk(false);
+    return;
+  }
+  if (museum?.walking && !overlay && !ui.menuOpen()) {
+    if (WALK_KEYS.includes(e.code)) {
+      held.add(e.code);
+      refreshMove();
+      e.preventDefault();
+    } else if (e.code === 'Enter' && nearbyItem) {
+      openItem(nearbyItem);
+    }
     return;
   }
   if (!museum || !museum.entered || ui.menuOpen()) return;
