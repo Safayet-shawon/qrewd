@@ -234,6 +234,19 @@ export function buildFigure(kind) {
     wrist.position.y = -DIM.forearm;
     elbow.add(wrist);
     wrist.add(ellipsoid(0.04, 0.08, 0.028, skin, [0, -0.07, 0]));
+    // accessories: a wristwatch on the boy's left wrist, a thin bangle and watch on the girl's
+    if (!girl && side > 0) {
+      const strap = new THREE.Mesh(new THREE.TorusGeometry(0.043, 0.008, 8, 24), mat(0x161616, 0.4));
+      strap.rotation.x = Math.PI / 2;
+      strap.position.y = -0.015;
+      wrist.add(strap);
+    }
+    if (girl && side > 0) {
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.044, 0.006, 8, 24), mat(0xd9dadd, 0.2));
+      band.rotation.x = Math.PI / 2;
+      band.position.y = -0.02;
+      wrist.add(band);
+    }
     return { shoulder, elbow, wrist, side };
   });
 
