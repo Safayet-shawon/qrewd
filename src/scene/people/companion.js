@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { createCouple, animatePerson, faceAngle, updateDynamics, holdHands } from './couple.js';
 import { DOOR } from '../architecture.js';
-import { attachExternal } from './external.js';
 
 const SPEED = 2.3; // metres per second
 const TURN_RATE = 1.9; // radians per second
@@ -11,6 +10,8 @@ const FACADE_Z = 0;
 const OUTSIDE_Z = 7;
 const NEAR = { plaque: 2.6, heart: 3.6, letter: 2.8 };
 const NEAR_DEFAULT = 2.4;
+const EYE_HEIGHT = 1.65;
+const PITCH_LIMIT = 0.6;
 
 /** Circles the visitor cannot walk through (columns, plinths, lectern, dais). */
 function buildObstacles(L, timelineCount) {
@@ -47,6 +48,7 @@ export function createCompanion(scene, L, items, timelineCount) {
 
   const input = { x: 0, y: 0, turn: 0 };
   let heading = 0;
+  let pitch = 0;
   let nearby = null;
 
   function halfAt(z) {
@@ -208,16 +210,14 @@ export function createCompanion(scene, L, items, timelineCount) {
     return { room: roomAt(girl.pos.z), nearby };
   }
 
-  /** Camera position and look target that frame the couple from behind. */
+  /** First-person camera: eye height at the player's position, looking along heading and pitch. */
   function cameraTarget() {
-    const f = forward();
-    const r = right();
-    const mid = { x: (girl.pos.x + boy.pos.x) / 2, z: (girl.pos.z + boy.pos.z) / 2 };
-    const pos = { x: mid.x - f.x * 3.9 + r.x * 0.35, z: mid.z - f.z * 3.9 + r.z * 0.35 };
-    clampInside(pos, 0.3);
+    const cp = Math.cos(pitch);
+    const dir = new THREE.Vector3(Math.sin(heading) * cp, Math.sin(pitch), -Math.cos(heading) * cp);
+    const pos = { x: girl.pos.x, z: girl.pos.z };
     return {
-      pos: new THREE.Vector3(pos.x, 2.05, pos.z),
-      look: new THREE.Vector3(mid.x + f.x * 1.2, 1.25, mid.z + f.z * 1.2),
+      pos: new THREE.Vector3(pos.x, EYE_HEIGHT, pos.z),
+      look: new THREE.Vector3(pos.x, EYE_HEIGHT, pos.z).addScaledVector(dir, 3),
     };
   }
 
@@ -232,9 +232,8 @@ export function createCompanion(scene, L, items, timelineCount) {
 
   place(2.2, -4.5, 0);
 
-  // owner-supplied models replace the procedural bodies when the files exist
-  attachExternal(girl, 'girl');
-  attachExternal(boy, 'boy');
+  // First-person: the visitor is the player, so the couple is not shown.
+  couple.root.visible = false;
 
   return {
     couple,
@@ -245,6 +244,9 @@ export function createCompanion(scene, L, items, timelineCount) {
     },
     turn(dx) {
       heading += dx;
+    },
+    pitchBy(dy) {
+      pitch = THREE.MathUtils.clamp(pitch + dy, -PITCH_LIMIT, PITCH_LIMIT);
     },
     get heading() {
       return heading;

@@ -158,8 +158,8 @@ function wireMuseum() {
     ui.setNearby(item ? nearbyLabel(item) : null);
   });
 
-  ui.on('prev', () => !overlay && museum.guideStep(-1));
-  ui.on('next', () => !overlay && museum.guideStep(1));
+  ui.on('prev', () => !overlay && museum.prev());
+  ui.on('next', () => !overlay && museum.next());
   ui.on('look', () => {
     const f = museum.walking ? nearbyItem : museum.stops[museum.stopIndex]?.featured;
     if (f) openItem(f);

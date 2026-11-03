@@ -319,7 +319,10 @@ export async function createMuseum(canvas, content, quality) {
         canvas.style.cursor = 'grabbing';
         events.emit('dragstart');
       }
-      if (ptr.moved && state.walk) companion.turn(dx * 0.005);
+      if (ptr.moved && state.walk) {
+        companion.turn(dx * 0.005);
+        companion.pitchBy(dy * 0.004);
+      }
       else if (ptr.moved && !rig.moving) rig.nudge(dx, dy);
       return;
     }
@@ -569,7 +572,8 @@ export async function createMuseum(canvas, content, quality) {
     state.stop = 0;
     state.focused = null;
     rig.dragEnabled = true;
-    // from here on the visitor walks: the couple starts inside the hall, camera behind them
+    // from here on the visitor walks, first-person, starting at the first stop
+    companion.place(first.pos.x, first.pos.z, Math.atan2(first.look.x - first.pos.x, -(first.look.z - first.pos.z)));
     setWalkFlag(true);
     canvas.style.cursor = 'grab';
     events.emit('stopchange', first, null);
@@ -607,7 +611,7 @@ export async function createMuseum(canvas, content, quality) {
     if (state.walk) {
       const info = companion.update(dt, t, true, wind);
       const cam = companion.cameraTarget();
-      const k = 1 - Math.exp(-dt * 5);
+        const k = 1 - Math.exp(-dt * 14);
       rig.pos.lerp(cam.pos, k);
       rig.look.lerp(cam.look, k);
       if (info.room !== lastRoom) {

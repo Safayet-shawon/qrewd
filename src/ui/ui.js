@@ -158,7 +158,7 @@ export function createUI(content, rooms) {
     el.look.firstElementChild.textContent = '';
     el.prev.disabled = false;
     el.next.disabled = false;
-    ui.hint(touch ? 'Drag the circle to walk. Use the arrows to choose the next place.' : 'Walk with W A S D or the arrow keys. Use the arrows to choose the next place.', 7000);
+    ui.hint(touch ? 'Drag the circle to walk. Use Next and Prev to move between places.' : 'Walk with W A S D or the arrow keys. Drag to look. Click a photograph to see it closer. Next and Prev move between places.', 7000);
   };
 
   /** The guide marker is on a stop: show where it is. */
