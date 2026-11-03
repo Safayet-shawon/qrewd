@@ -22,9 +22,10 @@ export function createDust(count) {
       uCenter: { value: new THREE.Vector3() },
       uPx: { value: 1 },
       uOpacity: { value: 0 },
+      uDrift: { value: new THREE.Vector2() },
     },
     vertexShader: /* glsl */ `
-      uniform float uTime; uniform vec3 uCenter; uniform float uPx;
+      uniform float uTime; uniform vec3 uCenter; uniform float uPx; uniform vec2 uDrift;
       attribute float aSeed; varying float vA;
       const vec3 BOX = vec3(14.0, 7.0, 18.0);
       void main() {
@@ -32,6 +33,7 @@ export function createDust(count) {
         p.y += uTime * (0.03 + aSeed * 0.04);
         p.x += sin(uTime * 0.12 + aSeed * 40.0) * 0.5;
         p.z += cos(uTime * 0.09 + aSeed * 31.0) * 0.5;
+        p.xz += uDrift;
         vec3 rel = mod(p - uCenter + BOX * 0.5, BOX) - BOX * 0.5;
         vec3 w = uCenter + rel;
         vec4 mv = viewMatrix * vec4(w, 1.0);

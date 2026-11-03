@@ -534,6 +534,34 @@ svg {
     display: block;
   }
 }
+@media (max-height: 520px) and (orientation: landscape) {
+  .joy {
+    left: calc(var(--safe-l) + 14px);
+    bottom: calc(var(--safe-b) + 12px);
+    width: 104px;
+    height: 104px;
+  }
+  .joy__knob {
+    width: 42px;
+    height: 42px;
+    margin: -21px 0 0 -21px;
+  }
+  .look {
+    min-height: 46px;
+    min-width: 9.5rem;
+  }
+  .nav {
+    width: 46px;
+    height: 46px;
+  }
+  .toast {
+    bottom: calc(var(--safe-b) + 92px);
+  }
+  .progress {
+    transform: scale(0.85);
+    transform-origin: center bottom;
+  }
+}
 #app[data-walk='1'] #btnPrev,
 #app[data-walk='1'] #btnNext {
   display: none;

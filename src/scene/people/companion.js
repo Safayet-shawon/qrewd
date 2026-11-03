@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { createCouple, animateFigure, faceAngle } from './avatars.js';
-import { DOOR } from './architecture.js';
+import { createCouple, animatePerson, faceAngle, updateDynamics, holdHands } from './couple.js';
+import { DOOR } from '../architecture.js';
 
 const SPEED = 2.3; // metres per second
 const TURN_RATE = 1.9; // radians per second
@@ -115,6 +115,8 @@ export function createCompanion(scene, L, items, timelineCount) {
     boy.pos = { x: t.x, z: t.z };
     clampInside(boy.pos, WALL_MARGIN);
     girl.angle = boy.angle = h;
+    girl.prev = { x: girl.pos.x, z: girl.pos.z };
+    boy.prev = { x: boy.pos.x, z: boy.pos.z };
     syncRoot(girl);
     syncRoot(boy);
   }
@@ -138,11 +140,14 @@ export function createCompanion(scene, L, items, timelineCount) {
     return best;
   }
 
+  let holdW = 0;
+
   /**
-   * Advance the couple by `dt`. When `active` (walk mode), the girl moves with
-   * `input`. Returns the room index and the nearby item, or null.
+   * Advance the couple by `dt`. When `active` (walk mode) the girl moves with
+   * `input`. `wind` is the world wind vector (m/s). Returns the room index and
+   * the nearby item, or null.
    */
-  function update(dt, t, active) {
+  function update(dt, t, active, wind = { x: 0, z: 0 }) {
     let moving = false;
     if (active) {
       heading += input.turn * TURN_RATE * dt;
@@ -165,9 +170,6 @@ export function createCompanion(scene, L, items, timelineCount) {
       }
     }
 
-    // The girl turns to the boy when she stands still.
-    if (!moving) faceAngle(girl, Math.atan2(boy.pos.x - girl.pos.x, boy.pos.z - girl.pos.z), dt);
-
     let boyMoving = false;
     if (active) {
       const tgt = boyTarget();
@@ -181,18 +183,24 @@ export function createCompanion(scene, L, items, timelineCount) {
         faceAngle(boy, Math.atan2(bx, bz), dt);
       }
     }
-    if (!boyMoving) faceAngle(boy, Math.atan2(girl.pos.x - boy.pos.x, girl.pos.z - boy.pos.z), dt);
 
     syncRoot(girl);
     syncRoot(boy);
-    animateFigure(girl, dt, t, moving);
-    animateFigure(boy, dt, t, boyMoving);
 
-    // A small shared tilt while they stand close, so they seem to be listening to each other.
-    const close = Math.hypot(boy.pos.x - girl.pos.x, boy.pos.z - girl.pos.z) < 1.4;
-    const idle = !moving && !boyMoving && close;
-    boy.head.rotation.z += ((idle ? 0.07 + Math.sin(t * 0.9) * 0.02 : 0) - boy.head.rotation.z) * Math.min(1, dt * 4);
-    girl.head.rotation.z += ((idle ? -0.05 : 0) - girl.head.rotation.z) * Math.min(1, dt * 4);
+    // Both stand still and close together: they hold hands and turn to each other.
+    const gap = Math.hypot(boy.pos.x - girl.pos.x, boy.pos.z - girl.pos.z);
+    const togetherIdle = !moving && !boyMoving && gap < 1.25;
+    holdW += ((togetherIdle ? 1 : 0) - holdW) * Math.min(1, dt * 2.5);
+    if (!moving) faceAngle(girl, Math.atan2(boy.pos.x - girl.pos.x, boy.pos.z - girl.pos.z), dt);
+    if (!boyMoving) faceAngle(boy, Math.atan2(girl.pos.x - boy.pos.x, girl.pos.z - boy.pos.z), dt);
+
+    const gSpeed = updateDynamics(girl, dt, wind);
+    const bSpeed = updateDynamics(boy, dt, wind);
+    girl.lookYaw = 0;
+    boy.lookYaw = 0;
+    animatePerson(girl, dt, t, { moving, speed: gSpeed, wind });
+    animatePerson(boy, dt, t, { moving: boyMoving, speed: bSpeed, wind });
+    if (holdW > 0.001) holdHands(girl, boy, holdW);
 
     if (!active) return null;
     nearby = findNearby();
@@ -221,7 +229,7 @@ export function createCompanion(scene, L, items, timelineCount) {
     place(camPos.x + f.x * 3.6, camPos.z + f.z * 3.6, h);
   }
 
-  place(1.2, -2.4, 0);
+  place(0.4, -2.6, 0);
 
   return {
     couple,

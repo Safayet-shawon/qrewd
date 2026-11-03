@@ -147,6 +147,7 @@ function wireMuseum() {
   museum.events.on('select', openItem);
   museum.events.on('dragstart', () => ui.hint(null));
   museum.events.on('walk', (on) => ui.setWalkMode(on));
+  museum.events.on('weather', (msg) => ui.toast(msg));
   museum.events.on('room', (index) => {
     ui.setRoom(index, rooms[index].name);
     ui.showCaption(rooms[index]);

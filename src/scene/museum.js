@@ -9,7 +9,8 @@ import { LightPool } from './lighting.js';
 import { CameraRig } from './cameraRig.js';
 import { createDust, createEmbers } from './particles.js';
 import { ImageStore } from './frames.js';
-import { createCompanion } from './companion.js';
+import { createCompanion } from './people/companion.js';
+import { createWeather, WEATHER_LABEL } from './weather/weather.js';
 import { skyTexture } from './textures.js';
 import { buildEntrance } from './rooms/entrance.js';
 import { buildGallery } from './rooms/gallery.js';
@@ -148,6 +149,8 @@ export async function createMuseum(canvas, content, quality) {
   /* dust */
   const dust = createDust(quality.dust);
   root.add(dust);
+  const weather = createWeather(scene, { mats, hemi, quality });
+  const windDrift = new THREE.Vector2();
   dustUniformsPx.push(dust.material.uniforms.uPx);
   ctx.disposables.push(dust.geometry, dust.material);
 
@@ -224,6 +227,7 @@ export async function createMuseum(canvas, content, quality) {
 
   /* ───────────── The couple (walk mode) ───────────── */
   const companion = createCompanion(scene, L, ctx.items, content.timeline.length);
+  let wind = { x: 0, z: 0 };
   let lastRoom = -1;
   let lastNearby = null;
 
@@ -556,8 +560,17 @@ export async function createMuseum(canvas, content, quality) {
     state.time += dt;
     const t = state.time;
 
+    const weatherNow = weather.update(dt, t, camera.position, {
+      inside: rig.pos.z < 0,
+      onChange: (mode) => events.emit('weather', WEATHER_LABEL[mode]),
+    });
+    wind = weatherNow.wind;
+    windDrift.x += wind.x * dt * 0.35;
+    windDrift.y += wind.z * dt * 0.35;
+    dust.material.uniforms.uDrift.value.copy(windDrift);
+
     if (state.walk) {
-      const info = companion.update(dt, t, true);
+      const info = companion.update(dt, t, true, wind);
       const cam = companion.cameraTarget();
       const k = 1 - Math.exp(-dt * 5);
       rig.pos.lerp(cam.pos, k);
@@ -571,14 +584,14 @@ export async function createMuseum(canvas, content, quality) {
         events.emit('nearby', info.nearby);
       }
     } else {
-      companion.update(dt, t, false);
+      companion.update(dt, t, false, wind);
     }
 
     rig.update(dt, t, ctx.reduced());
     camera.getWorldDirection(fwd);
     focusPt.copy(camera.position).addScaledVector(fwd, 3);
     lights.update(dt, focusPt, state.reveal);
-    hemi.intensity = 0.14 + 0.2 * state.reveal;
+    hemi.intensity = 0.14 + 0.2 * state.reveal + weatherNow.flash * 0.9;
     const dm = dust.material.uniforms;
     dm.uTime.value = ctx.reduced() ? 0 : t;
     dm.uCenter.value.set(camera.position.x + fwd.x * 4, 3, camera.position.z + fwd.z * 4);
@@ -639,6 +652,7 @@ export async function createMuseum(canvas, content, quality) {
       });
     });
     ctx.disposables.forEach((d) => d?.dispose?.());
+    weather.dispose();
     images.dispose();
     envRT.dispose();
     scene.background?.dispose?.();
