@@ -29,8 +29,10 @@ export const DIM = {
 };
 
 const PAL = {
-  girl: { skin: 0xe6bfa2, hair: 0x4a2f22, blouse: 0xd9a08f, skirt: 0xc98a7d, shoe: 0x3b2c26, lip: 0xb9686a },
-  boy: { skin: 0xdcb296, hair: 0x2b201b, shirt: 0xeae0cc, vest: 0x6d5a48, pants: 0x3f4a5a, shoe: 0x2a211d, lip: 0x9c6a5e },
+  // girl: pink hijab, long red kurta, cream flats
+  girl: { skin: 0xe6bfa2, hair: 0x2a1f1b, blouse: 0xa8152f, skirt: 0xb0162f, scarf: 0xf3c9d2, shoe: 0xeee2cc, lip: 0xb9686a },
+  // boy: black button shirt, grey trousers, black belt, white sneakers, glasses, short beard
+  boy: { skin: 0xdcb296, hair: 0x14110f, shirt: 0x1d2025, beard: 0x1a1412, pants: 0x4a4f58, belt: 0x161616, shoe: 0xf2f2ef, frame: 0x1c1c1c, lip: 0x9c6a5e },
 };
 
 function mat(color, roughness = 0.75) {
@@ -157,7 +159,13 @@ export function buildFigure(kind) {
   const chestMat = girl ? mat(P.blouse, 0.8) : mat(P.shirt, 0.8);
   chest.add(ellipsoid(girl ? 0.165 : 0.19, girl ? 0.19 : 0.2, girl ? 0.12 : 0.13, chestMat, [0, DIM.shoulderY - 0.1, 0]));
   chest.add(ellipsoid(girl ? 0.14 : 0.17, 0.1, girl ? 0.1 : 0.11, chestMat, [0, 0.07, 0]));
-  if (!girl) chest.add(ellipsoid(0.165, 0.17, 0.075, mat(P.vest, 0.85), [0, 0.13, 0.085])); // waistcoat front
+
+
+  if (!girl) {
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.175, 0.045, 28), mat(P.belt, 0.4));
+    belt.position.y = 0.07;
+    pelvis.add(belt);
+  }
 
   // neck & head
   const neck = new THREE.Group();
@@ -172,31 +180,35 @@ export function buildFigure(kind) {
   head.add(ellipsoid(0.04, 0.026, 0.03, skin, [0, -0.1, 0.07])); // chin
   face(head, kind, P);
 
-  // hair
+  // hair and head covering
   const hair = {};
   if (girl) {
-    head.add(ellipsoid(0.1, 0.118, 0.108, hairM, [0, 0.03, -0.012])); // skull cap
-    head.add(ellipsoid(0.07, 0.03, 0.045, hairM, [0.012, 0.092, 0.075])); // side-swept fringe
-    head.add(ellipsoid(0.09, 0.07, 0.07, hairM, [0, 0.03, -0.075])); // back of the head
-    // long hair hangs as a chain of three springy links from the crown
-    const chain = [];
-    let parent = head;
-    let y = 0.02;
-    let z = -0.085;
-    for (let i = 0; i < 3; i++) {
-      const link = new THREE.Group();
-      link.position.set(0, y, z);
-      parent.add(link);
-      link.add(bone(0.23, 0.07 - i * 0.008, hairM));
-      chain.push(link);
-      parent = link;
-      y = -0.2;
-      z = 0;
-    }
-    hair.chain = chain;
+    // hijab: a soft cap that covers the crown, a fringe line, and a scarf dropping over the shoulders
+    const scarf = mat(P.scarf, 0.85);
+    head.add(ellipsoid(0.108, 0.122, 0.112, scarf, [0, 0.03, -0.018]));
+    head.add(ellipsoid(0.1, 0.09, 0.1, scarf, [0, 0.045, -0.07]));
+    head.add(ellipsoid(0.12, 0.09, 0.07, scarf, [0, -0.02, -0.1]));
+    spine.add(ellipsoid(0.2, 0.2, 0.09, scarf, [0, 0.13, -0.11]));
+    spine.add(ellipsoid(0.17, 0.12, 0.05, scarf, [0, 0.12, 0.11]));
   } else {
-    head.add(ellipsoid(0.1, 0.112, 0.106, hairM, [0, 0.035, -0.014])); // short cap
-    head.add(ellipsoid(0.072, 0.024, 0.036, hairM, [-0.01, 0.094, 0.078])); // fringe
+    // short curly hair with a little volume on top
+    head.add(ellipsoid(0.1, 0.108, 0.104, hairM, [0, 0.042, -0.012]));
+    for (const [x, y, z] of [[-0.05, 0.1, 0.03], [0.02, 0.11, 0.04], [0.06, 0.09, 0.02], [-0.02, 0.12, -0.02], [0.04, 0.12, -0.04]]) {
+      head.add(ellipsoid(0.036, 0.03, 0.034, hairM, [x, y, z]));
+    }
+    // short beard along the jaw
+    const beardM = mat(P.beard, 0.9);
+    head.add(ellipsoid(0.088, 0.05, 0.085, beardM, [0, -0.072, 0.012]));
+    head.add(ellipsoid(0.04, 0.03, 0.03, beardM, [0, -0.1, 0.07]));
+    // glasses: two thin rims and a bridge
+    const frameM = mat(P.frame, 0.35);
+    for (const sx of [-1, 1]) {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.0045, 8, 24), frameM);
+      rim.scale.set(1.15, 0.9, 1);
+      rim.position.set(sx * 0.037, 0.014, 0.1);
+      head.add(rim);
+    }
+    head.add(ellipsoid(0.012, 0.0045, 0.0045, frameM, [0, 0.02, 0.105]));
   }
 
   // arms: shoulder → elbow → wrist → hand
@@ -220,14 +232,14 @@ export function buildFigure(kind) {
   // skirt: a cloth tube whose rings lag behind the body (see cloth.js)
   let skirt = null;
   if (girl) {
-    const skirtGeo = new THREE.CylinderGeometry(0.2, 0.42, 0.56, 28, 6, true);
-    skirtGeo.translate(0, -0.28, 0);
+    const skirtGeo = new THREE.CylinderGeometry(0.2, 0.44, 0.8, 28, 8, true);
+    skirtGeo.translate(0, -0.4, 0);
     const base = skirtGeo.attributes.position.array.slice();
     const sk = new THREE.Mesh(skirtGeo, mat(P.skirt, 0.9));
     sk.material.side = THREE.DoubleSide;
     sk.castShadow = true;
     pelvis.add(sk);
-    skirt = { mesh: sk, geo: skirtGeo, base, height: 0.56 };
+    skirt = { mesh: sk, geo: skirtGeo, base, height: 0.8 };
   }
 
   // hands (a simple closed fist-ish ellipsoid on each wrist was added above)
