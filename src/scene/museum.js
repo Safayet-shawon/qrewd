@@ -430,6 +430,14 @@ export async function createMuseum(canvas, content, quality) {
 
   /** Put the couple at a stop, facing the stop's view. */
   function placeAtStop(s) {
+    const f = s.featured?.focus;
+    if (f) {
+      // stand in front of the thing (1.3 m out from it), facing it, so it is in reach
+      const x = f.center.x + f.normal.x * 1.3;
+      const z = f.center.z + f.normal.z * 1.3;
+      companion.place(x, z, Math.atan2(f.center.x - x, -(f.center.z - z)));
+      return;
+    }
     const heading = Math.atan2(s.look.x - s.pos.x, -(s.look.z - s.pos.z));
     companion.place(s.pos.x, s.pos.z, heading);
   }

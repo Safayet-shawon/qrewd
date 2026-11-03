@@ -267,7 +267,6 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (ui.menuOpen()) ui.closeMenu();
     else if (overlay) closeOverlay();
-    else if (museum?.walking) museum.setWalk(false);
     return;
   }
   if (museum?.walking && !overlay && !ui.menuOpen()) {
