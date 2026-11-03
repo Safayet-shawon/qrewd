@@ -196,8 +196,6 @@ export function buildFigure(kind) {
     head.add(ellipsoid(0.108, 0.122, 0.112, scarf, [0, 0.03, -0.018]));
     head.add(ellipsoid(0.1, 0.09, 0.1, scarf, [0, 0.045, -0.07]));
     head.add(ellipsoid(0.12, 0.09, 0.07, scarf, [0, -0.02, -0.1]));
-    spine.add(ellipsoid(0.2, 0.2, 0.09, scarf, [0, 0.13, -0.11]));
-    spine.add(ellipsoid(0.17, 0.12, 0.05, scarf, [0, 0.12, 0.11]));
   } else {
     // short curly hair with a little volume on top
     head.add(ellipsoid(0.1, 0.108, 0.104, hairM, [0, 0.042, -0.012]));
