@@ -388,11 +388,18 @@ export async function createMuseum(canvas, content, quality) {
 
   async function goToStop(i, { quick = false } = {}) {
     i = THREE.MathUtils.clamp(i, 0, stops.length - 1);
-    if (state.walk) leaveWalk();
     const s = stops[i];
     const prev = stops[state.stop];
     state.stop = i;
     state.focused = null;
+    if (state.walk) {
+      // walking: the couple is set down at the stop and the camera follows them there
+      placeAtStop(s);
+      guideIndex = -1;
+      guideMat.opacity = 0;
+      events.emit('stopchange', s, prev);
+      return Promise.resolve(true);
+    }
     rig.dragEnabled = true;
     setSway(s.room === 'heart' ? 0.7 : 0);
     if (s.roomIndex >= 0) ensureLoaded(s.roomIndex >= 1 ? 'milestone' : 'memory');
@@ -402,7 +409,7 @@ export async function createMuseum(canvas, content, quality) {
     return rig.moveTo(s.pos, s.look, { duration: d });
   }
 
-  /* ───────────── Walk mode ───────────── */
+  /* ───────────── Walk mode (always on once inside) ───────────── */
   function setWalkFlag(on) {
     state.walk = on;
     if (on) {
@@ -414,27 +421,30 @@ export async function createMuseum(canvas, content, quality) {
     events.emit('walk', on);
   }
 
-  function enterWalk() {
-    if (!state.entered || state.walk || state.focused) return;
-    const cam = rig.pos.clone();
-    const look = rig.look.clone();
-    companion.placeFromCamera(cam, look);
-    setWalkFlag(true);
-  }
-
-  function leaveWalk() {
+  /** Walk mode off, camera stays where it is: used while an item is open. */
+  function suspendWalk() {
     if (!state.walk) return;
+    state.resumeWalk = true;
     setWalkFlag(false);
   }
 
-  /** Walk mode off, camera stays where it is: used just before an item is opened. */
-  function suspendWalk() {
-    if (state.walk) leaveWalk();
+  /** Put the couple at a stop, facing the stop's view. */
+  function placeAtStop(s) {
+    const heading = Math.atan2(s.look.x - s.pos.x, -(s.look.z - s.pos.z));
+    companion.place(s.pos.x, s.pos.z, heading);
   }
 
-  /** Walk mode off, and the camera glides to the nearest guided stop. */
-  function exitWalkToNearestStop() {
-    if (!state.walk) return Promise.resolve(true);
+  /* guide: a floor marker that shows where the next stop is; the visitor walks there */
+  const guideMat = new THREE.MeshBasicMaterial({ color: 0xf3dcb0, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  const guideMarker = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 56), guideMat);
+  guideMarker.rotation.x = -Math.PI / 2;
+  guideMarker.position.y = 0.02;
+  guideMarker.renderOrder = 4;
+  scene.add(guideMarker);
+  ctx.disposables.push(guideMarker.geometry, guideMat);
+  let guideIndex = -1;
+
+  function nearestStop() {
     const g = companion.girlPosition();
     let best = 0;
     let bestD = Infinity;
@@ -445,7 +455,16 @@ export async function createMuseum(canvas, content, quality) {
         best = i;
       }
     });
-    return goToStop(best);
+    return best;
+  }
+
+  function guideStep(dir) {
+    const base = guideIndex >= 0 ? guideIndex : nearestStop();
+    guideIndex = THREE.MathUtils.clamp(base + dir, 0, stops.length - 1);
+    const s = stops[guideIndex];
+    guideMarker.position.set(s.pos.x, 0.02, s.pos.z);
+    events.emit('guide', s);
+    return s;
   }
 
   /** Fit an item in view, leaving room for the panel that is about to open. */
@@ -486,6 +505,12 @@ export async function createMuseum(canvas, content, quality) {
 
   function unfocus() {
     if (!state.focused) return Promise.resolve(true);
+    state.focused = null;
+    if (state.resumeWalk) {
+      state.resumeWalk = false;
+      setWalkFlag(true);
+      return Promise.resolve(true);
+    }
     return goToStop(state.stop);
   }
 
@@ -536,6 +561,8 @@ export async function createMuseum(canvas, content, quality) {
     state.stop = 0;
     state.focused = null;
     rig.dragEnabled = true;
+    // from here on the visitor walks: the couple starts inside the hall, camera behind them
+    setWalkFlag(true);
     canvas.style.cursor = 'grab';
     events.emit('stopchange', first, null);
   }
@@ -586,6 +613,11 @@ export async function createMuseum(canvas, content, quality) {
     } else {
       companion.update(dt, t, false, wind);
     }
+
+    const guideOn = guideIndex >= 0 && state.walk;
+    const guideTarget = guideOn ? 0.55 + 0.25 * Math.sin(t * 2.6) : 0;
+    guideMat.opacity += (guideTarget - guideMat.opacity) * Math.min(1, dt * 6);
+    guideMarker.scale.setScalar(1 + 0.06 * Math.sin(t * 2.6));
 
     rig.update(dt, t, ctx.reduced());
     camera.getWorldDirection(fwd);
@@ -682,12 +714,12 @@ export async function createMuseum(canvas, content, quality) {
     get walking() {
       return state.walk;
     },
-    setWalk(on) {
-      if (on) enterWalk();
-      else return exitWalkToNearestStop();
-      return Promise.resolve(true);
-    },
     suspendWalk,
+    guideStep,
+    get guideIndex() {
+      return guideIndex;
+    },
+    nearestStop,
     /** x: right, y: forward (both -1..1). turn: -1 left, 1 right. */
     setMove(x, y, turn = 0) {
       companion.setInput(x, y, turn);

@@ -229,7 +229,7 @@ export function createCompanion(scene, L, items, timelineCount) {
     place(camPos.x + f.x * 3.6, camPos.z + f.z * 3.6, h);
   }
 
-  place(0.4, -2.6, 0);
+  place(2.2, -4.5, 0);
 
   return {
     couple,

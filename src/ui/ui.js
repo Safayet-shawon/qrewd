@@ -72,7 +72,6 @@ export function createUI(content, rooms) {
   wire('btnNext', 'next');
   wire('btnLook', 'look');
   wire('btnEntrance', 'entrance');
-  wire('btnWalk', 'walk');
   const joy = $('joy');
   const knob = joy.querySelector('.joy__knob');
   wire('btnMusic', 'music');
@@ -126,10 +125,10 @@ export function createUI(content, rooms) {
     current = stop;
     markRoom(stop.roomIndex);
     el.stopLabel.textContent = stop.label;
-    el.prev.disabled = stop.index === 0;
-    el.next.disabled = stop.index === count - 1;
     $('sr').textContent = stop.label;
     if (walkOn) return;
+    el.prev.disabled = stop.index === 0;
+    el.next.disabled = stop.index === count - 1;
     const featured = !!stop.featured;
     el.look.classList.toggle('is-empty', !featured);
     el.look.disabled = !featured;
@@ -149,19 +148,22 @@ export function createUI(content, rooms) {
     if (label) el.look.firstElementChild.textContent = label;
   };
 
+  /** Walking is the default once inside: the joystick or keys move the girl. */
   ui.setWalkMode = (on) => {
     walkOn = on;
     app.dataset.walk = on ? '1' : '';
-    $('btnWalk').setAttribute('aria-pressed', String(on));
-    $('btnWalk').setAttribute('aria-label', on ? 'Stop walking' : 'Walk around');
-    $('btnWalk').querySelector('span').textContent = on ? 'Stop' : 'Walk';
-    el.prev.disabled = on;
-    el.next.disabled = on;
     if (!on) return;
     el.look.classList.add('is-empty');
     el.look.disabled = true;
     el.look.firstElementChild.textContent = '';
-    ui.hint(touch ? 'Drag the circle to walk. Drag the screen to turn.' : 'Walk with W A S D or the arrow keys. Drag to turn.', 7000);
+    el.prev.disabled = false;
+    el.next.disabled = false;
+    ui.hint(touch ? 'Drag the circle to walk. Use the arrows to choose the next place.' : 'Walk with W A S D or the arrow keys. Use the arrows to choose the next place.', 7000);
+  };
+
+  /** The guide marker is on a stop: show where it is. */
+  ui.setGuide = (label) => {
+    el.stopLabel.textContent = label ? `Next: ${label}` : '';
   };
   ui.joyElement = joy;
   ui.joyKnob = knob;

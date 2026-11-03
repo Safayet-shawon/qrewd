@@ -562,10 +562,6 @@ svg {
     transform-origin: center bottom;
   }
 }
-#app[data-walk='1'] #btnPrev,
-#app[data-walk='1'] #btnNext {
-  display: none;
-}
 #app[data-walk='1'] .chip[aria-pressed='true'] {
   border-color: rgba(240, 220, 180, 0.75);
 }

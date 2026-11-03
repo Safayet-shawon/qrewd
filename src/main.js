@@ -148,6 +148,7 @@ function wireMuseum() {
   museum.events.on('dragstart', () => ui.hint(null));
   museum.events.on('walk', (on) => ui.setWalkMode(on));
   museum.events.on('weather', (msg) => ui.toast(msg));
+  museum.events.on('guide', (stop) => ui.setGuide(stop.label));
   museum.events.on('room', (index) => {
     ui.setRoom(index, rooms[index].name);
     ui.showCaption(rooms[index]);
@@ -156,12 +157,9 @@ function wireMuseum() {
     nearbyItem = item;
     ui.setNearby(item ? nearbyLabel(item) : null);
   });
-  ui.on('walk', () => {
-    if (!overlay) museum.setWalk(!museum.walking);
-  });
 
-  ui.on('prev', () => !overlay && museum.prev());
-  ui.on('next', () => !overlay && museum.next());
+  ui.on('prev', () => !overlay && museum.guideStep(-1));
+  ui.on('next', () => !overlay && museum.guideStep(1));
   ui.on('look', () => {
     const f = museum.walking ? nearbyItem : museum.stops[museum.stopIndex]?.featured;
     if (f) openItem(f);

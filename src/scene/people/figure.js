@@ -58,17 +58,52 @@ function ellipsoid(rx, ry, rz, material, pos = [0, 0, 0]) {
   return m;
 }
 
-/** Eyes, brows and lips, small enough to read as a face at the camera's distance. */
+/**
+ * A human face built from anatomical landmarks: brow ridge, eye sockets with
+ * whites, iris and lids, a nose with a bridge and nostrils, lips with a parting,
+ * and ears. Everything is a small ellipsoid so it deforms gracefully when scaled.
+ */
 function face(head, kind, P) {
-  const eye = mat(0x2a1d18, 0.4);
-  for (const x of [-0.045, 0.045]) {
-    head.add(ellipsoid(0.017, 0.02, 0.012, eye, [x, 0.012, 0.118]));
-    head.add(ellipsoid(0.02, 0.012, 0.01, mat(0x3a2a22, 0.7), [x, 0.038, 0.112]));
+  const white = mat(0xf1ebe4, 0.25);
+  const iris = mat(kind === 'girl' ? 0x5a3a24 : 0x3b2c20, 0.3);
+  const pupil = mat(0x0d0907, 0.2);
+  const lid = mat(P.skin, 0.55);
+  const brow = mat(P.hair, 0.8);
+  const lip = mat(P.lip, 0.45);
+  const lipDark = mat(0x4a2a24, 0.6);
+  const nostril = mat(0x8a5a4a, 0.7);
+
+  for (const sx of [-1, 1]) {
+    const x = sx * 0.036;
+    // eyeball, slightly protruding and set into the socket
+    head.add(ellipsoid(0.019, 0.016, 0.014, white, [x, 0.012, 0.088]));
+    head.add(ellipsoid(0.0095, 0.0095, 0.006, iris, [x, 0.012, 0.1]));
+    head.add(ellipsoid(0.0045, 0.0045, 0.004, pupil, [x, 0.012, 0.104]));
+    // upper and lower lid edges
+    head.add(ellipsoid(0.021, 0.006, 0.012, lid, [x, 0.024, 0.088]));
+    head.add(ellipsoid(0.019, 0.003, 0.01, mat(0x9a6a58, 0.8), [x, 0.001, 0.09]));
+    // brow, arched and tapered toward the outside
+    const br = ellipsoid(0.03, 0.0065, 0.008, brow, [x, 0.045, 0.082]);
+    br.rotation.z = -sx * 0.18;
+    head.add(br);
   }
-  head.add(ellipsoid(0.012, 0.022, 0.01, mat(0xd7a98e), [0, -0.012, 0.125]));
-  head.add(ellipsoid(0.03, 0.009, 0.01, mat(P.lip, 0.5), [0, -0.058, 0.113]));
-  if (kind === 'girl') {
-    for (const x of [-0.07, 0.07]) head.add(ellipsoid(0.03, 0.02, 0.008, mat(0xe39a8b, 0.9), [x, -0.03, 0.105]));
+  // nose: bridge, tip, wings and nostrils
+  head.add(ellipsoid(0.011, 0.034, 0.012, lid, [0, -0.012, 0.102]));
+  head.add(ellipsoid(0.016, 0.011, 0.014, lid, [0, -0.04, 0.106]));
+  for (const sx of [-1, 1]) {
+    head.add(ellipsoid(0.007, 0.006, 0.006, lid, [sx * 0.012, -0.045, 0.1]));
+    head.add(ellipsoid(0.0035, 0.0025, 0.003, nostril, [sx * 0.006, -0.05, 0.106]));
+  }
+  // cheekbones and philtrum: soft volume that catches the light
+  for (const sx of [-1, 1]) head.add(ellipsoid(0.026, 0.02, 0.014, lid, [sx * 0.055, -0.012, 0.072]));
+  // mouth: upper lip with a cupid's bow, lower lip, the parting between them
+  head.add(ellipsoid(0.024, 0.005, 0.009, lip, [-0.008, -0.07, 0.094]));
+  head.add(ellipsoid(0.024, 0.005, 0.009, lip, [0.008, -0.07, 0.094]));
+  head.add(ellipsoid(0.022, 0.0055, 0.01, lip, [0, -0.085, 0.092]));
+  head.add(ellipsoid(0.02, 0.0025, 0.005, lipDark, [0, -0.079, 0.1]));
+  // ears
+  for (const sx of [-1, 1]) {
+    head.add(ellipsoid(0.013, 0.026, 0.011, lid, [sx * 0.094, -0.005, 0.005]));
   }
 }
 
@@ -76,7 +111,7 @@ function face(head, kind, P) {
 export function buildFigure(kind) {
   const P = PAL[kind];
   const girl = kind === 'girl';
-  const skin = mat(P.skin, 0.62);
+  const skin = new THREE.MeshPhysicalMaterial({ color: P.skin, roughness: 0.5, metalness: 0, clearcoat: 0.15, clearcoatRoughness: 0.45, sheen: 0.2, sheenColor: new THREE.Color(0xffd8c0) });
   const hairM = mat(P.hair, 0.55);
   const shoe = mat(P.shoe, 0.45);
 
@@ -122,7 +157,7 @@ export function buildFigure(kind) {
   const chestMat = girl ? mat(P.blouse, 0.8) : mat(P.shirt, 0.8);
   chest.add(ellipsoid(girl ? 0.165 : 0.19, girl ? 0.19 : 0.2, girl ? 0.12 : 0.13, chestMat, [0, DIM.shoulderY - 0.1, 0]));
   chest.add(ellipsoid(girl ? 0.14 : 0.17, 0.1, girl ? 0.1 : 0.11, chestMat, [0, 0.07, 0]));
-  if (!girl) chest.add(ellipsoid(0.2, 0.2, 0.12, mat(P.vest, 0.85), [0, 0.2, 0.02]));
+  if (!girl) chest.add(ellipsoid(0.165, 0.17, 0.075, mat(P.vest, 0.85), [0, 0.13, 0.085])); // waistcoat front
 
   // neck & head
   const neck = new THREE.Group();
@@ -132,15 +167,17 @@ export function buildFigure(kind) {
   const head = new THREE.Group();
   head.position.y = DIM.headY + 0.04;
   neck.add(head);
-  head.add(ellipsoid(0.1, 0.122, 0.112, skin, [0, 0.02, 0]));
-  head.add(ellipsoid(0.105, 0.04, 0.11, skin, [0, -0.08, 0.01]));
+  head.add(ellipsoid(0.094, 0.114, 0.103, skin, [0, 0.022, -0.005])); // cranium
+  head.add(ellipsoid(0.085, 0.07, 0.092, skin, [0, -0.045, 0.012])); // lower face and jaw
+  head.add(ellipsoid(0.04, 0.026, 0.03, skin, [0, -0.1, 0.07])); // chin
   face(head, kind, P);
 
   // hair
   const hair = {};
   if (girl) {
-    head.add(ellipsoid(0.112, 0.118, 0.115, hairM, [0, 0.035, -0.012]));
-    head.add(ellipsoid(0.103, 0.06, 0.09, hairM, [0, 0.085, 0.03]));
+    head.add(ellipsoid(0.1, 0.118, 0.108, hairM, [0, 0.03, -0.012])); // skull cap
+    head.add(ellipsoid(0.07, 0.03, 0.045, hairM, [0.012, 0.092, 0.075])); // side-swept fringe
+    head.add(ellipsoid(0.09, 0.07, 0.07, hairM, [0, 0.03, -0.075])); // back of the head
     // long hair hangs as a chain of three springy links from the crown
     const chain = [];
     let parent = head;
@@ -158,7 +195,8 @@ export function buildFigure(kind) {
     }
     hair.chain = chain;
   } else {
-    head.add(ellipsoid(0.116, 0.1, 0.12, hairM, [0, 0.06, -0.01]));
+    head.add(ellipsoid(0.1, 0.112, 0.106, hairM, [0, 0.035, -0.014])); // short cap
+    head.add(ellipsoid(0.072, 0.024, 0.036, hairM, [-0.01, 0.094, 0.078])); // fringe
   }
 
   // arms: shoulder → elbow → wrist → hand
