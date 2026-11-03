@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { fabrics } from './fabric.js';
 
 /*
  * A jointed human figure in metres. Origin at the feet, front faces +z.
@@ -35,8 +36,14 @@ const PAL = {
   boy: { skin: 0xdcb296, hair: 0x14110f, shirt: 0x1d2025, beard: 0x1a1412, pants: 0x4a4f58, belt: 0x161616, shoe: 0xf2f2ef, frame: 0x1c1c1c, lip: 0x9c6a5e },
 };
 
-function mat(color, roughness = 0.75) {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
+function mat(color, roughness = 0.75, map = null, repeat = 1) {
+  const m = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
+  if (map) {
+    m.map = map.clone();
+    m.map.repeat.set(repeat, repeat);
+    m.map.needsUpdate = true;
+  }
+  return m;
 }
 
 /**
@@ -112,6 +119,7 @@ function face(head, kind, P) {
 /** Build one figure. `kind`: 'girl' | 'boy'. */
 export function buildFigure(kind) {
   const P = PAL[kind];
+  const F = fabrics();
   const girl = kind === 'girl';
   const skin = new THREE.MeshPhysicalMaterial({ color: P.skin, roughness: 0.5, metalness: 0, clearcoat: 0.15, clearcoatRoughness: 0.45, sheen: 0.2, sheenColor: new THREE.Color(0xffd8c0) });
   const hairM = mat(P.hair, 0.55);
@@ -124,7 +132,7 @@ export function buildFigure(kind) {
   pelvis.add(ellipsoid(0.17, 0.11, 0.12, mat(girl ? P.skirt : P.pants), [0, -0.02, 0]));
 
   // legs: hip → knee → ankle; each joint is a pivot the IK drives
-  const legMat = girl ? skin : mat(P.pants, 0.8);
+  const legMat = girl ? skin : mat(P.pants, 0.8, F.twill, 2);
   const legs = [-1, 1].map((side) => {
     const hip = new THREE.Group();
     hip.position.set(side * DIM.hipX, -0.02, 0);
@@ -156,7 +164,7 @@ export function buildFigure(kind) {
   // the chest group is what breathes; its meshes keep their own shape
   const chest = new THREE.Group();
   spine.add(chest);
-  const chestMat = girl ? mat(P.blouse, 0.8) : mat(P.shirt, 0.8);
+  const chestMat = girl ? mat(P.blouse, 0.8, F.kurta, 2) : mat(P.shirt, 0.8, F.shirt, 3);
   chest.add(ellipsoid(girl ? 0.165 : 0.19, girl ? 0.19 : 0.2, girl ? 0.12 : 0.13, chestMat, [0, DIM.shoulderY - 0.1, 0]));
   chest.add(ellipsoid(girl ? 0.14 : 0.17, 0.1, girl ? 0.1 : 0.11, chestMat, [0, 0.07, 0]));
 
@@ -184,7 +192,7 @@ export function buildFigure(kind) {
   const hair = {};
   if (girl) {
     // hijab: a soft cap that covers the crown, a fringe line, and a scarf dropping over the shoulders
-    const scarf = mat(P.scarf, 0.85);
+    const scarf = mat(P.scarf, 0.85, F.chiffon, 2);
     head.add(ellipsoid(0.108, 0.122, 0.112, scarf, [0, 0.03, -0.018]));
     head.add(ellipsoid(0.1, 0.09, 0.1, scarf, [0, 0.045, -0.07]));
     head.add(ellipsoid(0.12, 0.09, 0.07, scarf, [0, -0.02, -0.1]));
@@ -212,7 +220,7 @@ export function buildFigure(kind) {
   }
 
   // arms: shoulder → elbow → wrist → hand
-  const armMat = girl ? mat(P.blouse, 0.8) : mat(P.shirt, 0.8);
+  const armMat = girl ? mat(P.blouse, 0.8, F.kurta, 2) : mat(P.shirt, 0.8, F.shirt, 3);
   const arms = [-1, 1].map((side) => {
     const shoulder = new THREE.Group();
     shoulder.position.set(side * DIM.shoulderX, DIM.shoulderY, 0);
@@ -235,7 +243,7 @@ export function buildFigure(kind) {
     const skirtGeo = new THREE.CylinderGeometry(0.2, 0.44, 0.8, 28, 8, true);
     skirtGeo.translate(0, -0.4, 0);
     const base = skirtGeo.attributes.position.array.slice();
-    const sk = new THREE.Mesh(skirtGeo, mat(P.skirt, 0.9));
+    const sk = new THREE.Mesh(skirtGeo, mat(P.skirt, 0.9, F.kurta, 4));
     sk.material.side = THREE.DoubleSide;
     sk.castShadow = true;
     pelvis.add(sk);
