@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildFigure, DIM } from './figure.js';
+import { updateExternal } from './external.js';
 
 /*
  * Motion for the two people: gait with foot IK, springy hair, cloth skirt,
@@ -66,6 +67,11 @@ export function solveLeg(leg, tz, ty) {
  * horizontal vector (m/s), and `phase` is advanced here.
  */
 export function animatePerson(fig, dt, t, { moving, speed, wind }) {
+  if (fig.external) {
+    // an owner-supplied model: its own clips drive the body; springs and cloth are skipped
+    updateExternal(fig, dt, moving);
+    return;
+  }
   fig.amp += ((moving ? 1 : 0) - fig.amp) * Math.min(1, dt * 7);
   const stepRate = moving ? (speed / 0.72) * TWO_PI : 0; // one cycle = two steps
   fig.phase += stepRate * dt;

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createCouple, animatePerson, faceAngle, updateDynamics, holdHands } from './couple.js';
 import { DOOR } from '../architecture.js';
+import { attachExternal } from './external.js';
 
 const SPEED = 2.3; // metres per second
 const TURN_RATE = 1.9; // radians per second
@@ -230,6 +231,10 @@ export function createCompanion(scene, L, items, timelineCount) {
   }
 
   place(2.2, -4.5, 0);
+
+  // owner-supplied models replace the procedural bodies when the files exist
+  attachExternal(girl, 'girl');
+  attachExternal(boy, 'boy');
 
   return {
     couple,
