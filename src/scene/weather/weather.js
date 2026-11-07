@@ -89,7 +89,7 @@ export function createWeather(scene, { mats, hemi, quality }) {
   /* ground wetness and snow cover */
   const baseGroundRough = mats.ground.roughness;
   const baseGroundColor = mats.ground.color.clone();
-  const baseFogDensity = 0.0085;
+  const baseFogDensity = 0.006;
 
   // `?weather=rain` (or snow, fog, clear) starts with that weather, for previewing.
   const forced = new URLSearchParams(location.search).get('weather');

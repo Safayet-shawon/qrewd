@@ -107,7 +107,7 @@ svg {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: radial-gradient(120% 95% at 50% 46%, rgba(0, 0, 0, 0) 52%, rgba(14, 9, 6, 0.5) 100%);
+  background: radial-gradient(120% 95% at 50% 46%, rgba(0, 0, 0, 0) 60%, rgba(40, 30, 22, 0.22) 100%);
 }
 .shade {
   position: absolute;

@@ -57,7 +57,7 @@ export async function createMuseum(canvas, content, quality) {
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.2;
   renderer.shadowMap.enabled = quality.shadows;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   let dpr = quality.dpr;
@@ -65,20 +65,20 @@ export async function createMuseum(canvas, content, quality) {
 
   const scene = new THREE.Scene();
   scene.background = skyTexture();
-  scene.fog = new THREE.FogExp2(0x6a584b, 0.0085);
+  scene.fog = new THREE.FogExp2(0xd9cbb8, 0.006);
   const root = new THREE.Group();
   scene.add(root);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
   scene.environment = envRT.texture;
-  scene.environmentIntensity = 0.18;
+  scene.environmentIntensity = 0.32;
   pmrem.dispose();
 
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 220);
   const rig = new CameraRig(camera);
 
-  const hemi = new THREE.HemisphereLight(0xfff0da, 0xb7a086, 0.62);
+  const hemi = new THREE.HemisphereLight(0xfff4e6, 0xd6c4a8, 0.9);
   scene.add(hemi);
 
   const lights = new LightPool(scene, quality.lights, { shadows: quality.shadows });
@@ -541,7 +541,7 @@ export async function createMuseum(canvas, content, quality) {
     tl.to(doors.left.rotation, { y: 1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     tl.to(doors.right.rotation, { y: -1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     const revealT = gsap.to(state, { reveal: 1, duration: reduced ? 0.6 : 4.2, ease: 'power1.inOut', delay: reduced ? 0 : 0.6 });
-    const fogCol = new THREE.Color(0x2c2420);
+    const fogCol = new THREE.Color(0xd9cbb8);
     const fogT = gsap.to(scene.fog.color, { r: fogCol.r, g: fogCol.g, b: fogCol.b, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     const fogD = gsap.to(scene.fog, { density: 0.006, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     gsap.to(rig.drift, { amp: 0, duration: 1.2 });
@@ -635,7 +635,7 @@ export async function createMuseum(canvas, content, quality) {
     camera.getWorldDirection(fwd);
     focusPt.copy(camera.position).addScaledVector(fwd, 3);
     lights.update(dt, focusPt, state.reveal);
-    hemi.intensity = 0.14 + 0.2 * state.reveal + weatherNow.flash * 0.9;
+    hemi.intensity = 0.35 + 0.3 * state.reveal + weatherNow.flash * 0.9;
     const dm = dust.material.uniforms;
     dm.uTime.value = ctx.reduced() ? 0 : t;
     dm.uCenter.value.set(camera.position.x + fwd.x * 4, 3, camera.position.z + fwd.z * 4);
