@@ -39,6 +39,7 @@ export const museumContent = {
     heart: { name: 'The Heart Room', blurb: 'The centre of everything' },
     timeline: { name: 'Our Little Timeline', blurb: 'Moments, in order' },
     letter: { name: 'The Final Letter', blurb: 'Saved for last' },
+    finale: { name: 'The Sweet Sixteen', blurb: 'One last thing' },
   },
 
   // ── Room A — introduction plaque ───────────────────────────────────────────
@@ -168,6 +169,20 @@ export const museumContent = {
     signature: 'Yours, always',
     // The very last line, set apart from the rest of the letter.
     closing: 'Thank you for being part of my world.',
+  },
+
+  // ── Room F — the finale: a cake, then one question ────────────────────────
+  finale: {
+    // Shown on the cake's wall plate (two lines) and in the panel when the cake is opened.
+    cakeTitle: 'Be my queen',
+    cakeSubtitle: 'The forever sweet 16',
+    cakeMessage: 'Sixteen candles, and every one of them is for you.',
+    question: 'Will you marry me?',
+    yes: 'Yes',
+    notYet: 'Not yet',
+    yesTitle: 'Yes!',
+    yesMessage: 'Thank you for being part of my world.',
+    notYetMessage: 'Take your time. The cake will wait.',
   },
 
   // ── Optional ambient music ─────────────────────────────────────────────────

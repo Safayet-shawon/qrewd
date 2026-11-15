@@ -72,6 +72,8 @@ export function createUI(content, rooms) {
   wire('btnNext', 'next');
   wire('btnLook', 'look');
   wire('btnEntrance', 'entrance');
+  wire('btnYes', 'yes');
+  wire('btnNotYet', 'notYet');
   const joy = $('joy');
   const knob = joy.querySelector('.joy__knob');
   wire('btnMusic', 'music');
@@ -427,6 +429,50 @@ export function createUI(content, rooms) {
     e.preventDefault();
     f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
   });
+
+  /* ───────── the question and the answer ───────── */
+  ui.openProposal = ({ eyebrow, question, yes, no }) => {
+    $('propEyebrow').textContent = eyebrow || '';
+    $('propTitle').textContent = question;
+    $('propYes').textContent = yes;
+    $('propNo').textContent = no;
+    $('propNote').hidden = true;
+    $('btnYes').hidden = false;
+    $('btnNotYet').hidden = false;
+    const p = $('proposal');
+    p.hidden = false;
+    app.dataset.overlay = 'proposal';
+    gsap.fromTo(p.querySelector('.proposal__card'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: d(0.9), ease: 'power3.out' });
+    $('btnYes').focus({ preventScroll: true });
+  };
+  ui.showNotYet = (note) => {
+    $('propNote').textContent = note;
+    $('propNote').hidden = false;
+    $('btnYes').hidden = true;
+    $('btnNotYet').hidden = true;
+    setTimeout(() => ui.closeProposal(), 3200);
+  };
+  ui.closeProposal = () => {
+    const p = $('proposal');
+    if (p.hidden) return;
+    gsap.to(p, {
+      opacity: 0,
+      duration: d(0.6),
+      onComplete: () => {
+        p.hidden = true;
+        p.style.opacity = '';
+        app.dataset.overlay = '';
+      },
+    });
+  };
+  ui.showCelebrate = (title, text) => {
+    $('celebrateTitle').textContent = title;
+    $('celebrateText').textContent = text;
+    const c = $('celebrate');
+    c.hidden = false;
+    gsap.fromTo(c, { opacity: 0 }, { opacity: 1, duration: d(0.6) });
+    setTimeout(() => gsap.to(c, { opacity: 0, duration: d(1.2), onComplete: () => (c.hidden = true) }), 9000);
+  };
 
   ui.dispose = () => {
     ui.clear();

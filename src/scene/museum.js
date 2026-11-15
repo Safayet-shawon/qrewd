@@ -17,8 +17,9 @@ import { buildGallery } from './rooms/gallery.js';
 import { buildHeartRoom } from './rooms/heartRoom.js';
 import { buildTimeline } from './rooms/timeline.js';
 import { buildLetterRoom } from './rooms/letterRoom.js';
+import { buildFinale } from './rooms/finale.js';
 
-export const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter'];
+export const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter', 'finale'];
 
 function computeLayout(content) {
   const nM = content.memories.length;
@@ -36,7 +37,11 @@ function computeLayout(content) {
   const letter = { key: 'letter', z0: timeline.z1, half: 4.5, h: 5.6 };
   letter.z1 = letter.z0 - 14;
   letter.pedestalZ = letter.z1 + 3.9;
-  return { entrance, memories, heart, timeline, letter };
+  const finale = { key: 'finale', z0: letter.z1, half: 4.5, h: 5.6 };
+  finale.z1 = finale.z0 - 12;
+  finale.zc = (finale.z0 + finale.z1) / 2;
+  finale.pedestalZ = finale.z1 + 3.6;
+  return { entrance, memories, heart, timeline, letter, finale };
 }
 
 function fovFor(aspect) {
@@ -129,6 +134,7 @@ export async function createMuseum(canvas, content, quality) {
   room(buildHeartRoom);
   room(buildTimeline);
   room(buildLetterRoom);
+  room(buildFinale);
 
   // partitions between rooms (with arched doorways)
   ctx.batch = new Batcher();
@@ -137,6 +143,7 @@ export async function createMuseum(canvas, content, quality) {
     [L.memories.z1, Math.max(L.memories.half, L.heart.half), Math.max(L.memories.h, L.heart.h)],
     [L.heart.z1, Math.max(L.heart.half, L.timeline.half), Math.max(L.heart.h, L.timeline.h)],
     [L.timeline.z1, Math.max(L.timeline.half, L.letter.half), Math.max(L.timeline.h, L.letter.h)],
+    [L.letter.z1, Math.max(L.letter.half, L.finale.half), Math.max(L.letter.h, L.finale.h)],
   ];
   for (const [z, half, h] of parts) {
     ctx.batch.add(partitionGeometry({ width: half * 2 + 1.1, height: h, thickness: 0.6 }), mats.plaster, matrix(0, 0, z), { cast: true });
@@ -215,6 +222,14 @@ export async function createMuseum(canvas, content, quality) {
     look: V(0, 1.35, L.letter.pedestalZ),
     featured: ctx.refs.letter.item,
     cue: 'Open the letter',
+  });
+  addStop({
+    room: 'finale',
+    label: names.finale.name,
+    pos: V(0, 1.7, L.finale.pedestalZ + 3),
+    look: V(0, 1.4, L.finale.pedestalZ),
+    featured: ctx.refs.cake.item,
+    cue: 'Read',
   });
 
   const rooms = ROOM_KEYS.map((key, i) => ({
@@ -645,6 +660,7 @@ export async function createMuseum(canvas, content, quality) {
     dm.uTime.value = ctx.reduced() ? 0 : t;
     dm.uCenter.value.set(camera.position.x + fwd.x * 4, 3, camera.position.z + fwd.z * 4);
     for (const u of ctx.updaters) u(dt, t);
+    updateCelebrations(dt);
     renderer.render(scene, camera);
 
     // Adaptive quality: if the device struggles, quietly lower the pixel ratio.
@@ -677,6 +693,60 @@ export async function createMuseum(canvas, content, quality) {
     lostCb?.();
   };
   canvas.addEventListener('webglcontextlost', onContextLost);
+
+  /* ───────────── Celebration: confetti falls over the cake, like a crowd cheering ───────────── */
+  const celebrations = [];
+  function celebrate() {
+    const N = 320;
+    const pos = new Float32Array(N * 3);
+    const vel = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const palette = [0xf2c9c0, 0xe6b86a, 0xfbf3ea, 0xd98c8c, 0xffffff, 0xf0d9a8].map((c) => new THREE.Color(c));
+    const cx = 0;
+    const cz = L.finale.pedestalZ;
+    for (let i = 0; i < N; i++) {
+      pos[i * 3] = cx + (Math.random() - 0.5) * 3.2;
+      pos[i * 3 + 1] = 3.3 + Math.random() * 1.2;
+      pos[i * 3 + 2] = cz + (Math.random() - 0.5) * 3.2;
+      vel[i * 3] = (Math.random() - 0.5) * 0.5;
+      vel[i * 3 + 1] = -(0.4 + Math.random() * 0.5);
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+      const c = palette[i % palette.length];
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.16, vertexColors: true, transparent: true, opacity: 1, depthWrite: false });
+    const pts = new THREE.Points(geo, mat);
+    pts.frustumCulled = false;
+    root.add(pts);
+    celebrations.push({ pts, geo, mat, pos, vel, life: 0, cx, cz });
+  }
+
+  function updateCelebrations(dt) {
+    for (let k = celebrations.length - 1; k >= 0; k--) {
+      const c = celebrations[k];
+      c.life += dt;
+      for (let i = 0; i < c.pos.length / 3; i++) {
+        c.vel[i * 3 + 1] -= 0.6 * dt; // a little gravity, so the paper drifts down
+        c.pos[i * 3] += c.vel[i * 3] * dt;
+        c.pos[i * 3 + 1] += c.vel[i * 3 + 1] * dt;
+        c.pos[i * 3 + 2] += c.vel[i * 3 + 2] * dt;
+        if (c.pos[i * 3 + 1] < 0.2) c.pos[i * 3 + 1] = 3.3 + Math.random() * 1.2; // falls again: a shower
+      }
+      c.geo.attributes.position.needsUpdate = true;
+      c.mat.opacity = Math.max(0, 1 - Math.max(0, c.life - 8) / 4);
+      if (c.life > 12) {
+        root.remove(c.pts);
+        c.geo.dispose();
+        c.mat.dispose();
+        celebrations.splice(k, 1);
+      }
+    }
+  }
 
   /* ───────────── API ───────────── */
   function dispose() {
@@ -732,6 +802,7 @@ export async function createMuseum(canvas, content, quality) {
       return state.walk;
     },
     suspendWalk,
+    celebrate,
     guideStep,
     get guideIndex() {
       return guideIndex;

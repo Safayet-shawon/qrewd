@@ -583,6 +583,105 @@ svg {
   border-color: rgba(240, 220, 180, 0.75);
 }
 
+.proposal {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  padding: var(--gut);
+  background: rgba(24, 16, 13, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.proposal__card {
+  width: min(30rem, 100%);
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.6rem);
+  background: radial-gradient(120% 90% at 50% 0%, #fdf8ef 0%, #f5ecdc 100%);
+  color: var(--ink);
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+}
+.proposal__card .eyebrow {
+  color: var(--champagne-deep);
+}
+.proposal__title {
+  margin: 0.8rem 0 1.6rem;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+.proposal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+.proposal__actions .btn {
+  min-width: 9rem;
+}
+.proposal .btn--primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #f8efdc;
+}
+.proposal .btn--primary:hover {
+  background: #5a3f36;
+  border-color: #5a3f36;
+  color: #fff7e6;
+}
+.proposal .btn--paper {
+  color: var(--ink);
+}
+.proposal__note {
+  margin: 1.4rem 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: #5b4a40;
+}
+.celebrate {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: var(--gut);
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.6);
+}
+.celebrate__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(3rem, 12vw, 6.5rem);
+  color: #fbe9c8;
+  animation: celebrate-in 1.2s ease-out both;
+}
+.celebrate__text {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 3.4vw, 1.8rem);
+  color: #f3dcc4;
+  animation: celebrate-in 1.2s 0.6s ease-out both;
+}
+@keyframes celebrate-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .skip {
   position: absolute;
   z-index: 6;

@@ -125,6 +125,25 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="sr" class="sr" aria-live="polite"></div>
 
+      <!-- The question at the end -->
+      <section id="proposal" class="proposal" role="dialog" aria-modal="true" aria-labelledby="propTitle" hidden>
+        <div class="proposal__card">
+          <p class="eyebrow" id="propEyebrow"></p>
+          <h2 id="propTitle" class="proposal__title"></h2>
+          <div class="proposal__actions">
+            <button id="btnYes" class="btn btn--primary" type="button"><span id="propYes"></span></button>
+            <button id="btnNotYet" class="btn btn--paper" type="button"><span id="propNo"></span></button>
+          </div>
+          <p id="propNote" class="proposal__note" hidden></p>
+        </div>
+      </section>
+
+      <!-- The answer, after Yes -->
+      <section id="celebrate" class="celebrate" aria-live="polite" hidden>
+        <h2 id="celebrateTitle" class="celebrate__title"></h2>
+        <p id="celebrateText" class="celebrate__text"></p>
+      </section>
+
       <!-- Shown when 3D cannot run -->
       <div id="fallback" class="fallback" hidden></div>
     </div>

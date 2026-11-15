@@ -6,7 +6,7 @@ import { createUI } from './ui/ui.js';
 import { createAudio } from './ui/audio.js';
 import { buildFallback } from './ui/fallback.js';
 
-const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter'];
+const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter', 'finale'];
 const rooms = ROOM_KEYS.map((key, index) => ({ key, index, name: content.rooms[key].name, blurb: content.rooms[key].blurb }));
 
 const app = document.getElementById('app');
@@ -50,6 +50,9 @@ function describe(kind, index, withImage) {
       date: content.site.couple.filter(Boolean).join('  &  '),
       text: content.intro.message,
     };
+  }
+  if (kind === 'cake') {
+    return { eyebrow: 'Our finale', title: content.finale.cakeTitle, date: content.finale.cakeSubtitle, text: content.finale.cakeMessage };
   }
   return { eyebrow: 'For you', title: content.heart.secretTitle, date: '', text: content.heart.secretMessage };
 }
@@ -110,12 +113,28 @@ function stepGroup(dir) {
   showPanel(current.kind, index);
 }
 
+function openProposal() {
+  overlay = 'proposal';
+  museum?.setLocked(true);
+  ui.openProposal({
+    eyebrow: 'One last question',
+    question: content.finale.question,
+    yes: content.finale.yes,
+    no: content.finale.notYet,
+  });
+}
+
 async function closeOverlay() {
   if (!overlay) return;
   const was = overlay;
+  const closedKind = current?.kind;
   overlay = null;
   current = null;
   const my = ++session;
+  if (was === 'proposal') {
+    ui.closeProposal();
+    return;
+  }
   if (was === 'letter') {
     const closing = ui.closeLetter();
     museum?.letter.close();
@@ -124,6 +143,11 @@ async function closeOverlay() {
     await museum.unfocus();
   } else {
     await Promise.all([ui.closePanel(), museum?.unfocus()]);
+    // the cake's message comes first; closing it asks the question
+    if (closedKind === 'cake') {
+      openProposal();
+      return;
+    }
   }
   if (!museum || my !== session) return;
   museum.setLocked(false);
@@ -132,6 +156,19 @@ async function closeOverlay() {
 /* ───────────────────────── Wiring ───────────────────────── */
 
 ui.on('panelClose', closeOverlay);
+ui.on('yes', () => {
+  overlay = null;
+  ui.hint(null);
+  ui.closeProposal();
+  museum?.celebrate();
+  ui.showCelebrate(content.finale.yesTitle, content.finale.yesMessage);
+  museum?.setLocked(false);
+});
+ui.on('notYet', () => {
+  overlay = null;
+  ui.showNotYet(content.finale.notYetMessage);
+  museum?.setLocked(false);
+});
 ui.on('letterClose', closeOverlay);
 ui.on('panelPrev', () => stepGroup(-1));
 ui.on('panelNext', () => stepGroup(1));
