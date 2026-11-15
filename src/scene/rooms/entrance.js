@@ -62,6 +62,8 @@ export function buildEntrance(ctx, L) {
   // ground + approach path
   b.plane(160, 160, 0, -0.51, 40, mats.ground, { tile: 6, receive: true });
   b.plane(8, 60, 0, -0.5, 32.5, mats.path, { tile: 3 });
+  // red carpet from the front of the steps out to the arrival point
+  b.plane(2.4, 14, 0, -0.485, 9.7, mats.carpet, { tile: 4 });
   b.plane(24, 3.2, 0, -0.5, 4.3, mats.path, { tile: 3 });
 
   // urns on plinths flanking the landing
@@ -270,9 +272,9 @@ export function buildEntrance(ctx, L) {
 
   /* ───────────── Light slots ───────────── */
   for (const s of [-1, 1]) {
-    lights.addSlot({ room: 'exterior', pos: [s * 6.6, 0.1, 5.2], target: [s * 6.6, 6.5, 0], intensity: 170, angle: 0.5, penumbra: 0.9, distance: 18, color: 0xffd3a0 });
+    lights.addSlot({ room: 'exterior', pos: [s * 6.6, 0.1, 5.2], target: [s * 6.6, 6.5, 0], intensity: 40, angle: 0.5, penumbra: 0.9, distance: 18, color: 0xfff1dc });
   }
-  lights.addSlot({ room: 'exterior', pos: [0, 0.2, 7], target: [0, 3, 0], intensity: 70, angle: 0.6, penumbra: 0.9, distance: 16, color: 0xffd9ae });
+  lights.addSlot({ room: 'exterior', pos: [0, 0.2, 7], target: [0, 3, 0], intensity: 20, angle: 0.6, penumbra: 0.9, distance: 16, color: 0xfff1dc });
   lights.addSlot({ room: 'entrance', pos: [0, A.h - 0.4, P.z + 1.2], target: [0, 1.0, P.z], intensity: 95, angle: 0.5, penumbra: 0.7, distance: 14, color: 0xffe6c4 });
   lights.addSlot({ room: 'entrance', pos: [0, A.h - 0.4, -2.5], target: [0, 0, -4.5], intensity: 90, angle: 0.8, penumbra: 0.9, distance: 14 });
   lights.addSlot({ room: 'entrance', pos: [-4.4, A.h - 0.5, -6], target: [-6.8, 2.2, -6], intensity: 90, angle: 0.8, penumbra: 0.9, distance: 14 });

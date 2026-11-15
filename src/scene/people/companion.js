@@ -40,7 +40,7 @@ function buildObstacles(L, timelineCount) {
  */
 export function createCompanion(scene, L, items, timelineCount) {
   const couple = createCouple();
-  scene.add(couple.root);
+  // the couple is not shown: the visitor is the only person in first person
   const { girl, boy } = couple;
 
   const partitions = [FACADE_Z, L.entrance.z1, L.memories.z1, L.heart.z1, L.timeline.z1];

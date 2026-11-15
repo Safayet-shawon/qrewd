@@ -163,11 +163,11 @@ export function ringTexture() {
 export function skyTexture() {
   return canvasTexture(16, 512, (ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#1d222b');
-    g.addColorStop(0.45, '#3a3b40');
-    g.addColorStop(0.72, '#6d5c52');
-    g.addColorStop(0.9, '#b69477');
-    g.addColorStop(1, '#d6b896');
+    // a clear daytime sky: blue overhead, pale haze at the horizon
+    g.addColorStop(0, '#6fa6d6');
+    g.addColorStop(0.5, '#a9cde6');
+    g.addColorStop(0.8, '#dce9f0');
+    g.addColorStop(1, '#eee6d6');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   });

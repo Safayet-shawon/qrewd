@@ -65,7 +65,7 @@ export async function createMuseum(canvas, content, quality) {
 
   const scene = new THREE.Scene();
   scene.background = skyTexture();
-  scene.fog = new THREE.FogExp2(0xd9cbb8, 0.006);
+  scene.fog = new THREE.FogExp2(0xd6e4ec, 0.004);
   const root = new THREE.Group();
   scene.add(root);
 
@@ -541,7 +541,7 @@ export async function createMuseum(canvas, content, quality) {
     tl.to(doors.left.rotation, { y: 1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     tl.to(doors.right.rotation, { y: -1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     const revealT = gsap.to(state, { reveal: 1, duration: reduced ? 0.6 : 4.2, ease: 'power1.inOut', delay: reduced ? 0 : 0.6 });
-    const fogCol = new THREE.Color(0xd9cbb8);
+    const fogCol = new THREE.Color(0xd6e4ec);
     const fogT = gsap.to(scene.fog.color, { r: fogCol.r, g: fogCol.g, b: fogCol.b, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     const fogD = gsap.to(scene.fog, { density: 0.006, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     gsap.to(rig.drift, { amp: 0, duration: 1.2 });
@@ -635,7 +635,7 @@ export async function createMuseum(canvas, content, quality) {
     camera.getWorldDirection(fwd);
     focusPt.copy(camera.position).addScaledVector(fwd, 3);
     lights.update(dt, focusPt, state.reveal);
-    hemi.intensity = 0.35 + 0.3 * state.reveal + weatherNow.flash * 0.9;
+    hemi.intensity = 0.55 + 0.25 * state.reveal + weatherNow.flash * 0.9;
     const dm = dust.material.uniforms;
     dm.uTime.value = ctx.reduced() ? 0 : t;
     dm.uCenter.value.set(camera.position.x + fwd.x * 4, 3, camera.position.z + fwd.z * 4);
