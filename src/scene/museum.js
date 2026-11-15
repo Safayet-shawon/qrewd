@@ -70,7 +70,7 @@ export async function createMuseum(canvas, content, quality) {
 
   const scene = new THREE.Scene();
   scene.background = skyTexture();
-  scene.fog = new THREE.FogExp2(0xd6e4ec, 0.004);
+  scene.fog = new THREE.FogExp2(0xf6e0d8, 0.004);
   const root = new THREE.Group();
   scene.add(root);
 
@@ -83,7 +83,7 @@ export async function createMuseum(canvas, content, quality) {
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 220);
   const rig = new CameraRig(camera);
 
-  const hemi = new THREE.HemisphereLight(0xfff4e6, 0xd6c4a8, 0.9);
+  const hemi = new THREE.HemisphereLight(0xfff1e6, 0xe8c9b8, 0.9);
   scene.add(hemi);
 
   const lights = new LightPool(scene, quality.lights, { shadows: quality.shadows });
@@ -451,7 +451,8 @@ export async function createMuseum(canvas, content, quality) {
     const f = s.featured?.focus;
     if (f) {
       // milestones sit beside a plinth, so stand further out to keep clear of it
-      const d = s.featured.kind === 'milestone' ? 2.9 : 1.3;
+      // stand well back, so the whole piece is seen before Read brings the camera in
+      const d = { milestone: 3.8, memory: 3.8, heart: 4.2, letter: 3.4, cake: 3.6, plaque: 3.2 }[s.featured.kind] ?? 3.6;
       const x = f.center.x + f.normal.x * d;
       const z = f.center.z + f.normal.z * d;
       return { x, z, h: Math.atan2(f.center.x - x, -(f.center.z - z)) };
@@ -561,7 +562,7 @@ export async function createMuseum(canvas, content, quality) {
     tl.to(doors.left.rotation, { y: 1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     tl.to(doors.right.rotation, { y: -1.8, duration: reduced ? 0.5 : 2.6, ease: 'power2.inOut' }, reduced ? 0 : 0.5);
     const revealT = gsap.to(state, { reveal: 1, duration: reduced ? 0.6 : 4.2, ease: 'power1.inOut', delay: reduced ? 0 : 0.6 });
-    const fogCol = new THREE.Color(0xd6e4ec);
+    const fogCol = new THREE.Color(0xf6e0d8);
     const fogT = gsap.to(scene.fog.color, { r: fogCol.r, g: fogCol.g, b: fogCol.b, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     const fogD = gsap.to(scene.fog, { density: 0.006, duration: reduced ? 0.6 : 4, delay: reduced ? 0 : 2 });
     gsap.to(rig.drift, { amp: 0, duration: 1.2 });
@@ -593,7 +594,7 @@ export async function createMuseum(canvas, content, quality) {
     state.focused = null;
     rig.dragEnabled = true;
     // from here on the visitor walks, first-person, starting at the first stop
-    companion.place(first.pos.x, first.pos.z, Math.atan2(first.look.x - first.pos.x, -(first.look.z - first.pos.z)));
+    placeAtStop(first);
     setWalkFlag(true);
     canvas.style.cursor = 'grab';
     events.emit('stopchange', first, null);

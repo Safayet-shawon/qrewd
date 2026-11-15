@@ -164,10 +164,10 @@ export function skyTexture() {
   return canvasTexture(16, 512, (ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
     // a clear daytime sky: blue overhead, pale haze at the horizon
-    g.addColorStop(0, '#6fa6d6');
-    g.addColorStop(0.5, '#a9cde6');
-    g.addColorStop(0.8, '#dce9f0');
-    g.addColorStop(1, '#eee6d6');
+    g.addColorStop(0, '#7fb8e8');
+    g.addColorStop(0.5, '#bfe0f2');
+    g.addColorStop(0.8, '#f8dcd6');
+    g.addColorStop(1, '#fbe6cc');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   });

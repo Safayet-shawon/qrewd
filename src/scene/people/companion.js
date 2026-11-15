@@ -5,12 +5,13 @@ import { DOOR } from '../architecture.js';
 
 const SPEED = 2.3; // metres per second
 const TURN_RATE = 1.9; // radians per second
-const WALL_MARGIN = 0.6;
+const WALL_MARGIN = 0.8;
 const DOOR_HALF = DOOR.w / 2 - 0.25;
 const FACADE_Z = 0;
 const OUTSIDE_Z = 7;
-const NEAR = { plaque: 2.6, heart: 3.6, letter: 2.8, milestone: 3.4 };
-const NEAR_DEFAULT = 2.4;
+const NEAR = { plaque: 4.0, heart: 4.9, letter: 4.0, milestone: 4.7, memory: 4.6, cake: 4.2 };
+const NEAR_DEFAULT = 3.6;
+const FACING = 0.35; // how square-on the visitor must be to read a piece
 const EYE_HEIGHT = 1.65;
 const PITCH_LIMIT = 0.6;
 
@@ -156,11 +157,15 @@ export function createCompanion(scene, L, items, timelineCount) {
   function findNearby() {
     let best = null;
     let bestD = Infinity;
+    const f = forward();
     for (const it of items) {
       const c = it.focus.center;
-      const d = Math.hypot(c.x - girl.pos.x, c.z - girl.pos.z);
+      const dx = c.x - girl.pos.x;
+      const dz = c.z - girl.pos.z;
+      const d = Math.hypot(dx, dz);
       const lim = NEAR[it.kind] ?? NEAR_DEFAULT;
-      if (d < lim && d < bestD) {
+      const facing = d > 1e-3 ? (dx * f.x + dz * f.z) / d : 1; // 1 = straight ahead
+      if (d < lim && facing > FACING && d < bestD) {
         best = it;
         bestD = d;
       }
@@ -244,7 +249,7 @@ export function createCompanion(scene, L, items, timelineCount) {
     const cp = Math.cos(pitch);
     const dir = new THREE.Vector3(Math.sin(heading) * cp, Math.sin(pitch), -Math.cos(heading) * cp);
     const pos = { x: girl.pos.x, z: girl.pos.z };
-    const bob = scripted ? Math.abs(Math.sin(stepClock * 7)) * 0.04 : 0; // a small step bob while walking
+    const bob = scripted ? Math.sin(stepClock * 5.5) * 0.018 : 0; // a gentle step bob while walking
     return {
       pos: new THREE.Vector3(pos.x, EYE_HEIGHT + bob, pos.z),
       look: new THREE.Vector3(pos.x, EYE_HEIGHT, pos.z).addScaledVector(dir, 3),
