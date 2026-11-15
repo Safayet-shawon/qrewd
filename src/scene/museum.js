@@ -396,12 +396,12 @@ export async function createMuseum(canvas, content, quality) {
     state.stop = i;
     state.focused = null;
     if (state.walk) {
-      // walking: the couple is set down at the stop and the camera follows them there
-      placeAtStop(s);
+      // walking: the visitor walks there (Next/Prev and room jumps are real walks)
+      const p = stopPose(s);
       guideIndex = -1;
       guideMat.opacity = 0;
       events.emit('stopchange', s, prev);
-      return Promise.resolve(true);
+      return companion.walkTo(p.x, p.z, p.h);
     }
     rig.dragEnabled = true;
     setSway(s.room === 'heart' ? 0.7 : 0);
@@ -431,18 +431,23 @@ export async function createMuseum(canvas, content, quality) {
     setWalkFlag(false);
   }
 
-  /** Put the couple at a stop, facing the stop's view. */
-  function placeAtStop(s) {
+  /** Where the visitor stands for a stop, and the heading to face: in front of the thing. */
+  function stopPose(s) {
     const f = s.featured?.focus;
     if (f) {
-      // stand in front of the thing (1.3 m out from it), facing it, so it is in reach
-      const x = f.center.x + f.normal.x * 1.3;
-      const z = f.center.z + f.normal.z * 1.3;
-      companion.place(x, z, Math.atan2(f.center.x - x, -(f.center.z - z)));
-      return;
+      // milestones sit beside a plinth, so stand further out to keep clear of it
+      const d = s.featured.kind === 'milestone' ? 2.9 : 1.3;
+      const x = f.center.x + f.normal.x * d;
+      const z = f.center.z + f.normal.z * d;
+      return { x, z, h: Math.atan2(f.center.x - x, -(f.center.z - z)) };
     }
-    const heading = Math.atan2(s.look.x - s.pos.x, -(s.look.z - s.pos.z));
-    companion.place(s.pos.x, s.pos.z, heading);
+    return { x: s.pos.x, z: s.pos.z, h: Math.atan2(s.look.x - s.pos.x, -(s.look.z - s.pos.z)) };
+  }
+
+  /** Put the visitor at a stop straight away (no walk). */
+  function placeAtStop(s) {
+    const p = stopPose(s);
+    companion.place(p.x, p.z, p.h);
   }
 
   /* guide: a floor marker that shows where the next stop is; the visitor walks there */

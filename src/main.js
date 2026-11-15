@@ -65,7 +65,7 @@ function showPanel(kind, index) {
 
 /** Label for the button when the walking girl stands in front of something. */
 function nearbyLabel(item) {
-  return { memory: 'View photograph', milestone: 'Open this moment', heart: 'Touch the heart', letter: 'Open the letter', plaque: 'Read the plaque' }[item.kind] || 'Look closer';
+  return 'Read';
 }
 
 let nearbyItem = null;

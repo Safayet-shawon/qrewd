@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { createCouple, animatePerson, faceAngle, updateDynamics, holdHands } from './couple.js';
 import { DOOR } from '../architecture.js';
 
@@ -8,7 +9,7 @@ const WALL_MARGIN = 0.6;
 const DOOR_HALF = DOOR.w / 2 - 0.25;
 const FACADE_Z = 0;
 const OUTSIDE_Z = 7;
-const NEAR = { plaque: 2.6, heart: 3.6, letter: 2.8 };
+const NEAR = { plaque: 2.6, heart: 3.6, letter: 2.8, milestone: 3.4 };
 const NEAR_DEFAULT = 2.4;
 const EYE_HEIGHT = 1.65;
 const PITCH_LIMIT = 0.6;
@@ -110,6 +111,30 @@ export function createCompanion(scene, L, items, timelineCount) {
     return { x: girl.pos.x + r.x * 0.85 - f.x * 0.15, z: girl.pos.z + r.z * 0.85 - f.z * 0.15 };
   }
 
+  /**
+   * Walk the visitor to (x, z), turning to heading h on the way. Used by Next/Prev, so the
+   * move is a real walk rather than a jump. Resolves when they arrive.
+   */
+  function walkTo(x, z, h) {
+    scripted = true;
+    const dist = Math.hypot(x - girl.pos.x, z - girl.pos.z);
+    const duration = THREE.MathUtils.clamp(dist / 1.8, 1.2, 5);
+    const h0 = heading;
+    const dh = Math.atan2(Math.sin(h - h0), Math.cos(h - h0));
+    walkTl?.kill();
+    const turn = { v: 0 };
+    const tl = gsap.timeline();
+    walkTl = tl;
+    tl.to(girl.pos, { x, z, duration, ease: 'power1.inOut', onUpdate: () => syncRoot(girl) }, 0);
+    tl.to(turn, { v: 1, duration, ease: 'power1.inOut', onUpdate: () => { heading = h0 + dh * turn.v; } }, 0);
+    return new Promise((resolve) => {
+      tl.eventCallback('onComplete', () => {
+        scripted = false;
+        resolve(true);
+      });
+    });
+  }
+
   function place(x, z, h = 0) {
     girl.pos = { x, z };
     clampInside(girl.pos, WALL_MARGIN);
@@ -144,6 +169,9 @@ export function createCompanion(scene, L, items, timelineCount) {
   }
 
   let holdW = 0;
+  let scripted = false;
+  let walkTl = null;
+  let stepClock = 0;
 
   /**
    * Advance the couple by `dt`. When `active` (walk mode) the girl moves with
@@ -152,7 +180,8 @@ export function createCompanion(scene, L, items, timelineCount) {
    */
   function update(dt, t, active, wind = { x: 0, z: 0 }) {
     let moving = false;
-    if (active) {
+    if (scripted) stepClock += dt;
+    if (active && !scripted) {
       heading += input.turn * TURN_RATE * dt;
       let ix = input.x;
       let iy = input.y;
@@ -215,8 +244,9 @@ export function createCompanion(scene, L, items, timelineCount) {
     const cp = Math.cos(pitch);
     const dir = new THREE.Vector3(Math.sin(heading) * cp, Math.sin(pitch), -Math.cos(heading) * cp);
     const pos = { x: girl.pos.x, z: girl.pos.z };
+    const bob = scripted ? Math.abs(Math.sin(stepClock * 7)) * 0.04 : 0; // a small step bob while walking
     return {
-      pos: new THREE.Vector3(pos.x, EYE_HEIGHT, pos.z),
+      pos: new THREE.Vector3(pos.x, EYE_HEIGHT + bob, pos.z),
       look: new THREE.Vector3(pos.x, EYE_HEIGHT, pos.z).addScaledVector(dir, 3),
     };
   }
@@ -252,6 +282,7 @@ export function createCompanion(scene, L, items, timelineCount) {
       return heading;
     },
     place,
+    walkTo,
     placeFromCamera,
     update,
     cameraTarget,

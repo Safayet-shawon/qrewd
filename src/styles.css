@@ -455,6 +455,23 @@ svg {
   opacity: 0.32;
   cursor: default;
 }
+.nav--text {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  width: auto;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.nav--text svg {
+  width: 1.1em;
+  height: 1.1em;
+}
 .nav--sm {
   width: 44px;
   height: 44px;
