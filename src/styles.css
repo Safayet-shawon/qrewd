@@ -552,6 +552,25 @@ svg {
   }
 }
 @media (max-height: 520px) and (orientation: landscape) {
+  .intro {
+    padding-bottom: calc(var(--safe-b) + 14px);
+    background: linear-gradient(to top, rgba(18, 13, 10, 0.82) 0%, rgba(18, 13, 10, 0.55) 45%, rgba(18, 13, 10, 0) 80%);
+  }
+  .intro__title {
+    font-size: clamp(1.25rem, 6vh, 2rem);
+    letter-spacing: 0.08em;
+  }
+  .intro__sub {
+    font-size: 1rem;
+  }
+  .intro .btn {
+    min-height: 44px;
+    padding: 0.8rem 1.8rem;
+    margin-top: 0.2rem;
+  }
+  .intro__note {
+    display: none;
+  }
   .joy {
     left: calc(var(--safe-l) + 14px);
     bottom: calc(var(--safe-b) + 12px);
