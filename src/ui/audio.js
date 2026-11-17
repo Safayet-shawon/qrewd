@@ -30,8 +30,9 @@ export function createAudio(path, { onChange, onError }) {
     onError?.('No music file found yet. See the README to add a track.');
   }
 
-  async function start() {
-    if (!path) return fail();
+  /** Begin the music. `quiet` (used on Enter) skips the message when no file exists. */
+  async function start({ quiet = false } = {}) {
+    if (!path) return quiet ? undefined : fail();
     const a = ensure();
     on = true;
     onChange?.(true);
@@ -40,6 +41,12 @@ export function createAudio(path, { onChange, onError }) {
       if (!on) return a.pause();
       gsap.to(a, { volume: VOLUME, duration: 2.2, ease: 'power1.inOut' });
     } catch {
+      if (quiet) {
+        on = false;
+        onChange?.(false);
+        failed = true;
+        return;
+      }
       fail();
     }
   }
@@ -61,6 +68,11 @@ export function createAudio(path, { onChange, onError }) {
   return {
     get on() {
       return on;
+    },
+    /** Start from a deliberate gesture (Enter the museum). Silent if there is no file. */
+    begin() {
+      if (failed || on) return;
+      start({ quiet: true });
     },
     toggle() {
       if (on) stop();

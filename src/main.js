@@ -244,6 +244,8 @@ ui.on('enter', async () => {
   ui.setPhase('museum');
   ui.showHud();
   setTimeout(() => !overlay && ui.hint(ui.helpText, 8000), 1800);
+  // the music begins here, on the visitor's own Enter press; the button still turns it off
+  audio.begin();
   document.getElementById('scene').focus({ preventScroll: true });
 });
 
