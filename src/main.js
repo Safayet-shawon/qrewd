@@ -128,17 +128,22 @@ async function openItem(item) {
   showPanel(item.kind, item.index);
 }
 
-function stepGroup(dir) {
+async function stepGroup(dir) {
   if (overlay !== 'panel' || !current || !lists[current.kind]) return;
   const index = current.index + dir;
   if (index < 0 || index >= lists[current.kind].length) return;
+  const my = ++session;
+  const kind = current.kind;
   if (museum) {
-    const next = group(current.kind)[index];
+    const next = group(kind)[index];
     const idx = museum.stops.findIndex((s) => s.featured === next);
     if (idx >= 0) museum.markStop(idx);
-    museum.focusItem(next, ui.panelInsets());
+    // the camera glides to the next frame first; the text changes once it is there
+    ui.fadePanelOut();
+    await museum.focusItem(next, ui.panelInsets());
+    if (my !== session || overlay !== 'panel') return;
   }
-  showPanel(current.kind, index);
+  showPanel(kind, index);
 }
 
 /** Cut the cake: the crackers burst, then the sweet note appears. */

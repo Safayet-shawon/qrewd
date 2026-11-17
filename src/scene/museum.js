@@ -406,6 +406,7 @@ export async function createMuseum(canvas, content, quality) {
   /* ───────────── Image loading ───────────── */
   const loaded = new Set();
   function ensureLoaded(kind) {
+    if (kind === 'video' || loaded.has(kind)) return; // videos attach their own texture
     if (loaded.has(kind)) return;
     loaded.add(kind);
     ctx.items.filter((i) => i.kind === kind).forEach((i, n) => setTimeout(() => i.load?.(), n * 60));
@@ -436,7 +437,7 @@ export async function createMuseum(canvas, content, quality) {
     }
     rig.dragEnabled = true;
     setSway(s.room === 'heart' ? 0.7 : 0);
-    if (s.roomIndex >= 0) ensureLoaded(s.roomIndex >= 1 ? 'milestone' : 'memory');
+    ensureLoaded(s.room === 'pictures' ? 'picture' : 'memory');
     events.emit('stopchange', s, prev);
     const dist = rig.pos.distanceTo(s.pos);
     const d = quick ? 0.01 : dur(THREE.MathUtils.clamp(1.0 + dist * 0.075, 1.2, 4.2));
@@ -569,6 +570,7 @@ export async function createMuseum(canvas, content, quality) {
     state.locked = true;
     rig.dragEnabled = false;
     ensureLoaded('memory');
+    ensureLoaded('picture');
     const { doors } = ctx.refs;
     const first = stops[0];
     let skipped = false;

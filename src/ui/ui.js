@@ -291,6 +291,10 @@ export function createUI(content, rooms) {
     $('panelClose').focus({ preventScroll: true });
     el.panel.scrollTop = 0;
   };
+  /** Fade the panel's text out while the camera moves on to another piece. */
+  ui.fadePanelOut = () => {
+    gsap.to(el.panel.querySelectorAll('.panel__title,.panel__date,.panel__text,.panel__figure'), { opacity: 0, duration: d(0.35), ease: 'power1.out' });
+  };
   ui.setPanelNav = ({ prevEnabled, nextEnabled }) => {
     $('panelPrev').disabled = !prevEnabled;
     $('panelNext').disabled = !nextEnabled;
