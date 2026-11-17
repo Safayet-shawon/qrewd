@@ -144,7 +144,8 @@ export function createFrame(ctx, spec, placement) {
   let labelMesh = null;
   if (spec.label !== false) {
     const lw = Math.min(0.72, Math.max(0.5, ow * 0.62));
-    const tex = labelTexture(spec.title, spec.date);
+    // no date on a memory: the label invites the visitor to tap it
+    const tex = labelTexture(spec.title, spec.date || 'Tap to read');
     labelMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(lw, lw * (200 / 640)),
       new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.12 }),
