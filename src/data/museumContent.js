@@ -8,7 +8,7 @@
  *
  *  • Photos live in  public/images/memories/  and are referenced WITHOUT a
  *    leading slash, e.g.  'images/memories/memory-01.jpg'.
- *  • Add or remove entries in `memories` and `timeline`; the museum rebuilds
+ *  • Add or remove entries in `memories`, `videos` and `pictures`; the museum rebuilds
  *    itself (frames, corridor length, camera stops) from these lists.
  *  • `orientation` tells the museum how big to make the frame before the photo
  *    has loaded: 'portrait' | 'landscape' | 'square'. The photo itself is never
@@ -22,7 +22,7 @@ export const museumContent = {
     documentTitle: 'A Little World — a museum made just for you',
     description: 'A small virtual museum, made as a gift.',
     // Shown on the introduction plaque. Replace with the two names.
-    couple: ['Your Name', 'Their Name'],
+    couple: ['Shawon', 'Abonty'],
   },
 
   // ── Opening screen ─────────────────────────────────────────────────────────
@@ -37,7 +37,6 @@ export const museumContent = {
     entrance: { name: 'The Entrance Gallery', blurb: 'Where it begins' },
     memories: { name: 'Our Memories', blurb: 'A corridor of photographs' },
     heart: { name: 'The Heart Room', blurb: 'The centre of everything' },
-    timeline: { name: 'Our Little Timeline', blurb: 'Moments, in order' },
     letter: { name: 'The Final Letter', blurb: 'Saved for last' },
     videos: { name: 'Moments in Motion', blurb: 'Little clips, playing on loop' },
     pictures: { name: 'Only the Pictures', blurb: 'Still, and full of feeling' },
@@ -171,14 +170,14 @@ export const museumContent = {
 
   // ── Room — Only the Pictures: photographs with a line of feeling each ──────
   pictures: [
-    { title: 'A Look', caption: 'Some moments need no words, and this is one of them.' },
-    { title: 'Warm and Real', caption: 'The kind of smile that makes everything else feel quiet.' },
-    { title: 'Golden Light', caption: 'In this light you look like a memory I already love.' },
-    { title: 'Just Us', caption: 'Being yours is the easiest thing I have ever done.' },
-    { title: 'Soft Colours', caption: 'You bring colour into every day I spend with you.' },
-    { title: 'Blue and Gold', caption: 'Even the background cannot compete with how you look.' },
-    { title: 'Quiet Happiness', caption: 'This is what calm happiness looks like, and it looks like you.' },
-    { title: 'Always You', caption: 'Out of all the faces I could look at, yours is the one I choose.' },
+    { title: 'A Look', image: 'images/pictures/picture-01.jpg', orientation: 'portrait', caption: 'Some moments need no words, and this is one of them.' },
+    { title: 'Warm and Real', image: 'images/pictures/picture-02.jpg', orientation: 'portrait', caption: 'The kind of smile that makes everything else feel quiet.' },
+    { title: 'Golden Light', image: 'images/pictures/picture-03.jpg', orientation: 'portrait', caption: 'In this light you look like a memory I already love.' },
+    { title: 'Just Us', image: 'images/pictures/picture-04.jpg', orientation: 'portrait', caption: 'Being yours is the easiest thing I have ever done.' },
+    { title: 'Soft Colours', image: 'images/pictures/picture-05.jpg', orientation: 'portrait', caption: 'You bring colour into every day I spend with you.' },
+    { title: 'Blue and Gold', image: 'images/pictures/picture-06.jpg', orientation: 'portrait', caption: 'Even the background cannot compete with how you look.' },
+    { title: 'Quiet Happiness', image: 'images/pictures/picture-07.jpg', orientation: 'portrait', caption: 'This is what calm happiness looks like, and it looks like you.' },
+    { title: 'Always You', image: 'images/pictures/picture-08.jpg', orientation: 'portrait', caption: 'Out of all the faces I could look at, yours is the one I choose.' },
   ],
 
   // ── Room — Moments in Motion: short clips that loop, one per frame ───────────
@@ -199,79 +198,61 @@ export const museumContent = {
     // Engraved above the far doorway and shown when you arrive.
     message: 'Of all the places in the world, this little world is yours.',
     // Revealed when the sculpture is touched.
-    secretTitle: 'A Little Something',
+    secretTitle: 'Just for You',
     secretMessage:
-      'Write a short, private message here. It appears when the heart is touched.',
+      'Out of every heart in the world, yours is the one that feels like home. I keep finding new reasons to love you, and I hope you always know how much you mean to me.',
   },
-
-  // ── Room D — timeline ──────────────────────────────────────────────────────
-  // `image` is optional: use null (or omit it) for a milestone with no photo.
-  timeline: [
-    {
-      title: 'Milestone One',
-      date: 'Add Your Date',
-      memory: 'Write Your Memory Here',
-      image: 'images/memories/timeline-01.jpg',
-    },
-    {
-      title: 'Milestone Two',
-      date: 'Add Your Date',
-      memory: 'Write Your Memory Here',
-      image: 'images/memories/timeline-02.jpg',
-    },
-    {
-      title: 'Milestone Three',
-      date: 'Add Your Date',
-      memory: 'Write Your Memory Here',
-      image: null,
-    },
-    {
-      title: 'Milestone Four',
-      date: 'Add Your Date',
-      memory: 'Write Your Memory Here',
-      image: 'images/memories/timeline-03.jpg',
-    },
-    {
-      title: 'Milestone Five',
-      date: 'Add Your Date',
-      memory: 'Write Your Memory Here',
-      image: 'images/memories/timeline-04.jpg',
-    },
-  ],
 
   // ── Room E — the final letter ──────────────────────────────────────────────
   letter: {
     heading: 'A Letter For You',
-    greeting: 'Dear you,',
+    greeting: 'My dearest Abonty,',
     // One string per paragraph.
     paragraphs: [
-      'Write the first paragraph of your letter here. Each entry in this list becomes its own paragraph on the page.',
-      'Add as many paragraphs as you like. They appear one by one, slowly, as the letter is read.',
-      'Replace all of this with your own words.',
+      'Every day with you feels like the best part of my life. You make the quiet moments warm and the ordinary days feel like something worth keeping.',
+      'I want to spend my days making you smile, sharing small adventures, and growing old with your hand in mine. You are my favourite person, my calm and my joy.',
+      'Thank you for being you, and for letting me be part of your world.',
     ],
-    signature: 'Yours, always',
+    signature: 'Forever yours, Shawon',
     // The very last line, set apart from the rest of the letter.
     closing: 'Thank you for being part of my world.',
   },
 
   // ── Room F — the finale: a cake, then one question ────────────────────────
   finale: {
-    // A sweet love letter, revealed when the cake is opened and then closed.
-    loveLetter: [
-      'My dearest,',
-      'Every page of this little world is a small way of saying what my words sometimes cannot. You make ordinary days feel like the best ones, and every picture here is proof.',
-      'So here is my sweetest question, written just for you.',
-    ],
-    // Shown on the cake's wall plate (two lines) and in the panel when the cake is opened.
+    // Shown when the cake is opened: the button that starts the moment.
     cakeTitle: 'Be my queen',
     cakeSubtitle: 'The forever sweet 16',
-    cakeMessage: 'Sixteen candles, and every one of them is for you.',
+    cakeMessage: 'Sixteen candles, and every one of them is for you. Will you let me make every birthday, and every day, sweeter?',
+    cutLabel: 'Cut the cake',
+    laterLabel: 'Later',
+    // The sweet note: front side. Turning it over shows the question.
+    loveLetter: [
+      'My sweetest Abonty,',
+      'You are the reason my days feel softer and my heart feels lighter. Every picture in this little world is a small way of saying how much I adore you.',
+      'So here is my last, sweetest question, written just for you.',
+    ],
+    turnLabel: 'Turn the page',
+    // Back side of the note.
     question: 'Will you marry me?',
     yes: 'Yes',
     notYet: 'Not yet',
     yesTitle: 'Yes!',
-    yesMessage: 'Thank you for being part of my world.',
+    yesMessage: 'Thank you for being part of my world. Forever starts now.',
     notYetMessage: 'Take your time. The cake will wait.',
+  },
+
+  // ── How to explore: shown once after entering, and again from the ? button ──
+  guide: {
+    title: 'How to explore',
+    steps: [
+      'Walk with the joystick (phone) or W A S D / arrow keys (laptop). Drag to look around.',
+      'Stand in front of a photo, clip, or piece. When it glows, tap Read (or press Enter) to look closer.',
+      'Go next and Go previous take you to the next place, one by one.',
+      'At the end, the cake: tap Read, then Cut the cake, and the crackers fly.',
+      'A sweet note appears. Turn the page to find the question, then answer Yes or Not yet.',
+    ],
+    done: 'Got it',
   },
 
   // ── Optional ambient music ─────────────────────────────────────────────────

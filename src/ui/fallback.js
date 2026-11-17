@@ -65,7 +65,6 @@ export function buildFallback(root, content, { onMemory, onMilestone, onHeart, o
   };
 
   wrap.append(grid(content.rooms.memories.name, content.memories, onMemory));
-  wrap.append(grid(content.rooms.timeline.name, content.timeline, onMilestone));
 
   const actions = document.createElement('section');
   const ah = document.createElement('header');

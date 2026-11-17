@@ -125,25 +125,60 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="sr" class="sr" aria-live="polite"></div>
 
-      <!-- The sweet love letter, shown after the cake -->
-      <section id="loveLetter" class="lovesheet" role="dialog" aria-modal="true" aria-labelledby="loveTitle" hidden>
-        <div class="lovesheet__card">
-          <p class="eyebrow">A little note</p>
-          <div id="loveBody" class="lovesheet__body"></div>
-          <button id="btnLoveNext" class="btn btn--paper" type="button">Continue</button>
+      <!-- The cake: the moment to cut it -->
+      <section id="cakeCard" class="cakecard" role="dialog" aria-modal="true" aria-labelledby="cakeTitle" hidden>
+        <div class="cakecard__card">
+          <p class="eyebrow">Our sweet sixteen</p>
+          <h2 id="cakeTitle" class="cakecard__title"></h2>
+          <p id="cakeSub" class="cakecard__sub"></p>
+          <p id="cakeText" class="cakecard__text"></p>
+          <div class="cakecard__actions">
+            <button id="btnCut" class="btn btn--primary" type="button"><span id="cakeCut"></span></button>
+            <button id="btnCakeLater" class="btn btn--paper" type="button"><span id="cakeLater"></span></button>
+          </div>
         </div>
       </section>
 
-      <!-- The question at the end -->
-      <section id="proposal" class="proposal" role="dialog" aria-modal="true" aria-labelledby="propTitle" hidden>
-        <div class="proposal__card">
-          <p class="eyebrow" id="propEyebrow"></p>
-          <h2 id="propTitle" class="proposal__title"></h2>
-          <div class="proposal__actions">
-            <button id="btnYes" class="btn btn--primary" type="button"><span id="propYes"></span></button>
-            <button id="btnNotYet" class="btn btn--paper" type="button"><span id="propNo"></span></button>
+      <!-- The sweet note: front is the letter, back is the question with a ring -->
+      <section id="loveLetter" class="lovesheet" role="dialog" aria-modal="true" aria-labelledby="loveQ" hidden>
+        <div class="flipper" id="flipper">
+          <div class="flipper__inner">
+            <div class="flipper__face flipper__front">
+              <p class="eyebrow">A little note</p>
+              <div id="loveBody" class="lovesheet__body"></div>
+              <button id="btnFlip" class="btn btn--paper" type="button"><span id="flipLabel"></span></button>
+            </div>
+            <div class="flipper__face flipper__back">
+              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+                <defs>
+                  <linearGradient id="ringGold" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f6e3a8" />
+                    <stop offset="0.5" stop-color="#c9a24f" />
+                    <stop offset="1" stop-color="#f1d98e" />
+                  </linearGradient>
+                </defs>
+                <circle cx="60" cy="72" r="30" fill="none" stroke="url(#ringGold)" stroke-width="7" />
+                <path d="M60 14 L72 34 L60 46 L48 34 Z" fill="url(#ringGold)" />
+                <path d="M60 14 L66 26 L60 30 L54 26 Z" fill="#fff8e6" opacity="0.85" />
+              </svg>
+              <h2 id="loveQ" class="lovesheet__question"></h2>
+              <div class="lovesheet__actions">
+                <button id="btnLoveYes" class="btn btn--primary" type="button"><span id="loveYes"></span></button>
+                <button id="btnLoveNo" class="btn btn--paper" type="button"><span id="loveNo"></span></button>
+              </div>
+              <p id="loveNote" class="proposal__note" hidden></p>
+            </div>
           </div>
-          <p id="propNote" class="proposal__note" hidden></p>
+        </div>
+      </section>
+
+      <!-- How to explore -->
+      <section id="guide" class="guide" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
+        <div class="guide__card">
+          <p class="eyebrow">Welcome</p>
+          <h2 id="guideTitle" class="guide__title"></h2>
+          <ol id="guideSteps" class="guide__steps"></ol>
+          <button id="btnGuideDone" class="btn btn--primary" type="button"></button>
         </div>
       </section>
 

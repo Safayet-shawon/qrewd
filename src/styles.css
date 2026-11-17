@@ -602,7 +602,7 @@ svg {
   border-color: rgba(240, 220, 180, 0.75);
 }
 
-.lovesheet {
+.lovesheet, .cakecard, .guide {
   position: absolute;
   inset: 0;
   z-index: 11;
@@ -613,19 +613,112 @@ svg {
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.lovesheet__card {
-  width: min(32rem, 100%);
+.cakecard__card, .guide__card {
+  width: min(30rem, 100%);
   max-height: calc(100% - 2rem);
   overflow-y: auto;
   padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.6rem);
-  background: radial-gradient(120% 90% at 50% 0%, #fdf8ef 0%, #f3e6d2 100%);
+  background: radial-gradient(120% 90% at 50% 0%, #fdf8ef 0%, #f5ecdc 100%);
   color: var(--ink);
   border-radius: 6px;
   text-align: center;
   box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
 }
-.lovesheet__card .eyebrow {
+.cakecard__card .eyebrow, .guide__card .eyebrow, .flipper__front .eyebrow {
   color: var(--champagne-deep);
+}
+.cakecard__title, .guide__title {
+  margin: 0.6rem 0 0.4rem;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  line-height: 1.12;
+}
+.cakecard__sub {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  color: #7a3a44;
+}
+.cakecard__text {
+  margin: 1.2rem 0 1.6rem;
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  line-height: 1.55;
+  color: #43362e;
+}
+.cakecard__actions, .lovesheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+.guide__steps {
+  margin: 1.2rem 0 1.6rem;
+  padding: 0 0 0 1.2rem;
+  text-align: left;
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: #43362e;
+}
+.guide__steps li {
+  margin-bottom: 0.6rem;
+}
+.guide__card .btn {
+  min-width: 10rem;
+}
+.lovesheet {
+  padding: var(--gut);
+}
+.flipper {
+  width: min(32rem, 100%);
+  perspective: 1400px;
+}
+.flipper__inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 1s cubic-bezier(0.5, 0.1, 0.2, 1);
+}
+.flipper.is-flipped .flipper__inner {
+  transform: rotateY(180deg);
+}
+.flipper__face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.6rem);
+  background: radial-gradient(120% 80% at 50% 0%, #fbf6ea 0%, #f3e6d2 100%);
+  color: var(--ink);
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 1.2rem;
+  align-content: center;
+}
+.flipper__back {
+  transform: rotateY(180deg);
+}
+.lovesheet__question {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  line-height: 1.15;
+  color: #7a3a44;
+}
+.ring {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  filter: drop-shadow(0 6px 10px rgba(120, 80, 30, 0.35));
+  animation: ring-turn 6s ease-in-out infinite;
+}
+@keyframes ring-turn {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
 }
 .lovesheet__body p {
   margin: 0 0 1rem;
@@ -633,9 +726,6 @@ svg {
   font-size: clamp(1.2rem, 3.4vw, 1.4rem);
   line-height: 1.6;
   color: #43362e;
-}
-.lovesheet__card .btn {
-  margin-top: 1rem;
 }
 .proposal {
   position: absolute;

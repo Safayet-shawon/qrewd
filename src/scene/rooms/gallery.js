@@ -30,7 +30,8 @@ export function buildGallery(ctx, L, { room = 'memories', list = ctx.content.mem
   ctx.disposables.push(washTex, washMat);
 
   const sideZs = { '-1': [], 1: [] };
-  list.forEach((m, i) => {
+  // a frame only exists when it has a photo: empty entries are skipped, so the corridor fits what is there
+  list.filter((m) => m.image).forEach((m, i) => {
     const side = i % 2 === 0 ? -1 : 1;
     const z = B.z0 - 3.4 - i * B.spacing;
     sideZs[side].push(z);

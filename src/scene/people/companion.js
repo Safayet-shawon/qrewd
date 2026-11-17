@@ -16,7 +16,7 @@ const EYE_HEIGHT = 1.65;
 const PITCH_LIMIT = 0.6;
 
 /** Circles the visitor cannot walk through (columns, plinths, lectern, dais). */
-function buildObstacles(L, timelineCount) {
+function buildObstacles(L) {
   const o = [];
   o.push({ x: 0, z: L.entrance.plaque.z, r: 1.0 });
   for (const s of [-1, 1]) for (const z of [-4, -8, -12]) o.push({ x: s * 4.6, z, r: 0.45 }); // entrance columns
@@ -25,10 +25,6 @@ function buildObstacles(L, timelineCount) {
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
     o.push({ x: Math.sin(a) * 7, z: L.heart.zc + Math.cos(a) * 7, r: 0.4 });
-  }
-  for (let i = 0; i < timelineCount; i++) {
-    const side = i % 2 === 0 ? -1 : 1;
-    o.push({ x: side * 2.3, z: L.timeline.z0 - 3.6 - i * L.timeline.spacing, r: 0.5 });
   }
   o.push({ x: 0, z: L.letter.pedestalZ, r: 0.7 });
   for (const s of [-1, 1]) o.push({ x: s * 3.7, z: L.letter.pedestalZ, r: 0.4 });
@@ -40,37 +36,33 @@ function buildObstacles(L, timelineCount) {
  * her side. Movement is clamped to the rooms, blocked by walls except through
  * the arched doorways, and pushed around the obstacles above.
  */
-export function createCompanion(scene, L, items, timelineCount) {
+export function createCompanion(scene, L, items) {
   const couple = createCouple();
   // the couple is not shown: the visitor is the only person in first person
   const { girl, boy } = couple;
 
-  const partitions = [FACADE_Z, L.entrance.z1, L.memories.z1, L.videos.z1, L.heart.z1, L.timeline.z1];
-  const obstacles = buildObstacles(L, timelineCount);
+  // layout order: each room ends at its z1, and a doorway sits in each wall between them
+  const ORDER = ['entrance', 'memories', 'videos', 'heart', 'letter', 'pictures', 'finale'];
+  const partitions = [FACADE_Z, ...ORDER.map((k) => L[k].z1)];
+  const obstacles = buildObstacles(L);
 
   const input = { x: 0, y: 0, turn: 0 };
   let heading = 0;
   let pitch = 0;
   let nearby = null;
 
+  const HALF = { entrance: 7, memories: 4, videos: 4, heart: 9, letter: 4.5, pictures: 4, finale: 4.5 };
+
   function halfAt(z) {
     if (z > 0) return 11;
-    if (z > L.entrance.z1) return 7;
-    if (z > L.memories.z1) return 4;
-    if (z > L.videos.z1) return 4;
-    if (z > L.heart.z1) return 9;
-    if (z > L.timeline.z1) return 4;
-    return 4.5;
+    const i = roomAt(z);
+    return HALF[ORDER[i]];
   }
 
+  /** Index into ROOM_KEYS of the room the visitor is in. */
   function roomAt(z) {
-    if (z > L.entrance.z1) return 0;
-    if (z > L.memories.z1) return 1;
-    if (z > L.videos.z1) return 2;
-    if (z > L.heart.z1) return 3;
-    if (z > L.timeline.z1) return 4;
-    if (z > L.letter.z1) return 5;
-    return 6;
+    for (let i = 0; i < ORDER.length - 1; i++) if (z > L[ORDER[i]].z1) return i;
+    return ORDER.length - 1;
   }
 
   function clampInside(p, margin) {

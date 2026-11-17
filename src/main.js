@@ -6,7 +6,7 @@ import { createUI } from './ui/ui.js';
 import { createAudio } from './ui/audio.js';
 import { buildFallback } from './ui/fallback.js';
 
-const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'timeline', 'letter', 'pictures', 'finale'];
+const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'letter', 'pictures', 'finale'];
 const rooms = ROOM_KEYS.map((key, index) => ({ key, index, name: content.rooms[key].name, blurb: content.rooms[key].blurb }));
 
 const app = document.getElementById('app');
@@ -26,7 +26,7 @@ let ready = null;
 
 /* ───────────────────────── Overlay content ───────────────────────── */
 
-const lists = { memory: content.memories, milestone: content.timeline, video: content.videos, picture: content.pictures };
+const lists = { memory: content.memories, video: content.videos, picture: content.pictures };
 const group = (kind) => museum.items.filter((i) => i.kind === kind).sort((a, b) => a.index - b.index);
 
 /** Text for the information panel. `withImage` is only used when there is no 3D view. */
@@ -47,11 +47,11 @@ function describe(kind, index, withImage) {
       count: `${index + 1} / ${list.length}`,
     };
   }
-  if (kind === 'memory' || kind === 'milestone') {
+  if (kind === 'memory') {
     const list = lists[kind];
     const m = list[index];
     return {
-      eyebrow: `${kind === 'memory' ? 'Memory' : 'Milestone'} ${index + 1} of ${list.length}`,
+      eyebrow: `Memory ${index + 1} of ${list.length}`,
       title: m.title,
       date: m.date,
       text: kind === 'memory' ? m.caption : m.memory,
@@ -99,6 +99,18 @@ async function openItem(item) {
   if (idx >= 0 && idx !== museum.stopIndex) museum.markStop(idx);
   museum.setLocked(true);
 
+  if (item.kind === 'cake') {
+    overlay = 'cake';
+    await museum.focusItem(item, { right: 0, bottom: 0 });
+    if (my !== session) return;
+    const f = content.finale;
+    ui.openCake(
+      { title: f.cakeTitle, sub: f.cakeSubtitle, text: f.cakeMessage, cut: f.cutLabel, later: f.laterLabel },
+      { onCut: cutCake, onLater: () => closeOverlay() },
+    );
+    return;
+  }
+
   if (item.kind === 'letter') {
     overlay = 'letter';
     ui.setOverlay('letter');
@@ -129,15 +141,40 @@ function stepGroup(dir) {
   showPanel(current.kind, index);
 }
 
-function openProposal() {
-  overlay = 'proposal';
-  museum?.setLocked(true);
-  ui.openProposal({
-    eyebrow: 'One last question',
-    question: content.finale.question,
-    yes: content.finale.yes,
-    no: content.finale.notYet,
-  });
+/** Cut the cake: the crackers burst, then the sweet note appears. */
+function cutCake() {
+  overlay = 'note';
+  museum?.celebrate();
+  setTimeout(() => {
+    if (overlay !== 'note') return;
+    const f = content.finale;
+    ui.openNote(
+      {
+        paragraphs: f.loveLetter,
+        turn: f.turnLabel,
+        question: f.question,
+        yes: f.yes,
+        no: f.notYet,
+        notMessage: f.notYetMessage,
+      },
+      { onYes: answerYes, onNo: answerNotYet },
+    );
+  }, 1400);
+}
+
+function answerYes() {
+  overlay = null;
+  ui.hint(null);
+  museum?.celebrate();
+  ui.showCelebrate(content.finale.yesTitle, content.finale.yesMessage);
+  museum?.unfocus();
+  museum?.setLocked(false);
+}
+
+function answerNotYet() {
+  overlay = null;
+  museum?.unfocus();
+  museum?.setLocked(false);
 }
 
 async function closeOverlay() {
@@ -147,8 +184,10 @@ async function closeOverlay() {
   overlay = null;
   current = null;
   const my = ++session;
-  if (was === 'proposal') {
-    ui.closeProposal();
+  if (was === 'cake') {
+    await Promise.all([museum?.unfocus()]);
+    if (!museum || my !== session) return;
+    museum.setLocked(false);
     return;
   }
   if (was === 'letter') {
@@ -159,11 +198,6 @@ async function closeOverlay() {
     await museum.unfocus();
   } else {
     await Promise.all([ui.closePanel(), museum?.unfocus()]);
-    // the cake's message comes first; then the sweet note; then the question
-    if (closedKind === 'cake') {
-      ui.openLoveLetter(content.finale.loveLetter, openProposal);
-      return;
-    }
   }
   if (!museum || my !== session) return;
   museum.setLocked(false);
@@ -172,19 +206,6 @@ async function closeOverlay() {
 /* ───────────────────────── Wiring ───────────────────────── */
 
 ui.on('panelClose', closeOverlay);
-ui.on('yes', () => {
-  overlay = null;
-  ui.hint(null);
-  ui.closeProposal();
-  museum?.celebrate();
-  ui.showCelebrate(content.finale.yesTitle, content.finale.yesMessage);
-  museum?.setLocked(false);
-});
-ui.on('notYet', () => {
-  overlay = null;
-  ui.showNotYet(content.finale.notYetMessage);
-  museum?.setLocked(false);
-});
 ui.on('letterClose', closeOverlay);
 ui.on('panelPrev', () => stepGroup(-1));
 ui.on('panelNext', () => stepGroup(1));
@@ -226,7 +247,7 @@ function wireMuseum() {
     if (overlay) await closeOverlay();
     museum.goToStop(0);
   });
-  ui.on('help', () => ui.hint(ui.helpText, 9000));
+  ui.on('help', () => ui.showGuide(content.guide));
   ui.on('skip', () => museum.skipEntrance());
   museum.onContextLost(() => startFallback('The 3D view was interrupted, so here is the quiet version of the museum.'));
 }
@@ -243,7 +264,8 @@ ui.on('enter', async () => {
   ui.showSkip(false);
   ui.setPhase('museum');
   ui.showHud();
-  setTimeout(() => !overlay && ui.hint(ui.helpText, 8000), 1800);
+  // the first time in, the visitor is shown how to explore
+  setTimeout(() => !overlay && ui.showGuide(content.guide), 1800);
   // the music begins here, on the visitor's own Enter press; the button still turns it off
   audio.begin();
   document.getElementById('scene').focus({ preventScroll: true });
@@ -321,7 +343,7 @@ window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') {
     if (ui.menuOpen()) ui.closeMenu();
-    else if (overlay) closeOverlay();
+    else if (overlay && overlay !== 'note') closeOverlay(); // the sweet note is answered, not dismissed
     return;
   }
   if (museum?.walking && !overlay && !ui.menuOpen()) {
@@ -369,7 +391,6 @@ function startFallback(reason) {
   buildFallback(document.getElementById('fallback'), content, {
     reason,
     onMemory: (i) => open('memory', i),
-    onMilestone: (i) => open('milestone', i),
     onHeart: () => open('heart', 0),
     onLetter: () => {
       overlay = 'letter';

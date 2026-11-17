@@ -17,16 +17,14 @@ import { buildGallery } from './rooms/gallery.js';
 import { buildVideos } from './rooms/videos.js';
 import { buildGallery as buildPictureRoom } from './rooms/gallery.js';
 import { buildHeartRoom } from './rooms/heartRoom.js';
-import { buildTimeline } from './rooms/timeline.js';
 import { buildLetterRoom } from './rooms/letterRoom.js';
 import { buildFinale } from './rooms/finale.js';
 
-export const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'timeline', 'letter', 'pictures', 'finale'];
+export const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'letter', 'pictures', 'finale'];
 
 function computeLayout(content) {
   const nM = content.memories.length;
   const nV = content.videos.length;
-  const nT = content.timeline.length;
   const entrance = { key: 'entrance', z0: 0, z1: -16, half: 7, h: 6.5, plaque: { z: -7 } };
   const memSpacing = 2.9;
   const memories = { key: 'memories', z0: entrance.z1, half: 4, h: 5.4, spacing: memSpacing };
@@ -36,10 +34,7 @@ function computeLayout(content) {
   const heart = { key: 'heart', z0: videos.z1, half: 9, h: 8 };
   heart.z1 = heart.z0 - 18;
   heart.zc = (heart.z0 + heart.z1) / 2;
-  const tlSpacing = 3.3;
-  const timeline = { key: 'timeline', z0: heart.z1, half: 4, h: 5.4, spacing: tlSpacing };
-  timeline.z1 = timeline.z0 - (nT ? 7.4 + (nT - 1) * tlSpacing : 8);
-  const letter = { key: 'letter', z0: timeline.z1, half: 4.5, h: 5.6 };
+  const letter = { key: 'letter', z0: heart.z1, half: 4.5, h: 5.6 };
   letter.z1 = letter.z0 - 14;
   letter.pedestalZ = letter.z1 + 3.9;
   const nP = content.pictures.length;
@@ -49,7 +44,7 @@ function computeLayout(content) {
   finale.z1 = finale.z0 - 12;
   finale.zc = (finale.z0 + finale.z1) / 2;
   finale.pedestalZ = finale.z1 + 3.6;
-  return { entrance, memories, videos, heart, timeline, letter, pictures, finale };
+  return { entrance, memories, videos, heart, letter, pictures, finale };
 }
 
 function fovFor(aspect) {
@@ -141,7 +136,6 @@ export async function createMuseum(canvas, content, quality) {
   room(buildGallery);
   room(buildVideos);
   room(buildHeartRoom);
-  room(buildTimeline);
   room(buildLetterRoom);
   room((c, l) => buildPictureRoom(c, l, { room: 'pictures', list: c.content.pictures, kind: 'picture' }));
   room(buildFinale);
@@ -152,8 +146,7 @@ export async function createMuseum(canvas, content, quality) {
     [L.entrance.z1, Math.max(L.entrance.half, L.memories.half), Math.max(L.entrance.h, L.memories.h)],
     [L.memories.z1, Math.max(L.memories.half, L.videos.half), Math.max(L.memories.h, L.videos.h)],
     [L.videos.z1, Math.max(L.videos.half, L.heart.half), Math.max(L.videos.h, L.heart.h)],
-    [L.heart.z1, Math.max(L.heart.half, L.timeline.half), Math.max(L.heart.h, L.timeline.h)],
-    [L.timeline.z1, Math.max(L.timeline.half, L.letter.half), Math.max(L.timeline.h, L.letter.h)],
+    [L.heart.z1, Math.max(L.heart.half, L.letter.half), Math.max(L.heart.h, L.letter.h)],
     [L.letter.z1, Math.max(L.letter.half, L.pictures.half), Math.max(L.letter.h, L.pictures.h)],
     [L.pictures.z1, Math.max(L.pictures.half, L.finale.half), Math.max(L.pictures.h, L.finale.h)],
   ];
@@ -224,22 +217,6 @@ export async function createMuseum(canvas, content, quality) {
     featured: ctx.refs.heart.item,
     cue: 'Touch the heart',
   });
-  const tlItems = ctx.items.filter((i) => i.kind === 'milestone');
-  if (!tlItems.length) {
-    addStop({ room: 'timeline', label: names.timeline.name, pos: V(0, 1.65, L.timeline.z0 - 3), look: V(0, 1.65, L.timeline.z1), featured: null });
-  }
-  tlItems.forEach((item, i) => {
-    const side = item.focus.center.x < 0 ? -1 : 1;
-    const z = item.focus.center.z;
-    addStop({
-      room: 'timeline',
-      label: `${names.timeline.name} · ${i + 1} of ${tlItems.length}`,
-      pos: V(-side * 0.45, 1.68, z + 1.9),
-      look: V(side * 3.2, 1.5, z - 0.2),
-      featured: item,
-      cue: 'Open this moment',
-    });
-  });
   addStop({
     room: 'letter',
     label: names.letter.name,
@@ -279,7 +256,7 @@ export async function createMuseum(canvas, content, quality) {
   }));
 
   /* ───────────── The couple (walk mode) ───────────── */
-  const companion = createCompanion(scene, L, ctx.items, content.timeline.length);
+  const companion = createCompanion(scene, L, ctx.items);
   ctx.player = () => companion.girlPosition();
   let wind = { x: 0, z: 0 };
   let lastRoom = -1;

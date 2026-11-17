@@ -72,8 +72,6 @@ export function createUI(content, rooms) {
   wire('btnNext', 'next');
   wire('btnLook', 'look');
   wire('btnEntrance', 'entrance');
-  wire('btnYes', 'yes');
-  wire('btnNotYet', 'notYet');
   const joy = $('joy');
   const knob = joy.querySelector('.joy__knob');
   wire('btnMusic', 'music');
@@ -431,8 +429,32 @@ export function createUI(content, rooms) {
   });
 
   /* ───────── the question and the answer ───────── */
-  /** The sweet note after the cake; Continue leads to the question. */
-  ui.openLoveLetter = (paragraphs, onContinue) => {
+  /* ───────── the cake: the moment to cut it ───────── */
+  ui.openCake = ({ title, sub, text, cut, later }, { onCut, onLater }) => {
+    $('cakeTitle').textContent = title;
+    $('cakeSub').textContent = sub;
+    $('cakeText').textContent = text;
+    $('cakeCut').textContent = cut;
+    $('cakeLater').textContent = later;
+    const card = $('cakeCard');
+    card.hidden = false;
+    app.dataset.overlay = 'cake';
+    gsap.fromTo(card.querySelector('.cakecard__card'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: d(0.9), ease: 'power3.out' });
+    $('btnCut').onclick = () => {
+      card.hidden = true;
+      app.dataset.overlay = '';
+      onCut();
+    };
+    $('btnCakeLater').onclick = () => {
+      card.hidden = true;
+      app.dataset.overlay = '';
+      onLater();
+    };
+    $('btnCut').focus({ preventScroll: true });
+  };
+
+  /* ───────── the sweet note: front is the letter, the back asks the question ───────── */
+  ui.openNote = ({ paragraphs, turn, question, yes, no, notMessage }, { onYes, onNo }) => {
     const body = $('loveBody');
     body.replaceChildren();
     paragraphs.forEach((t) => {
@@ -440,53 +462,42 @@ export function createUI(content, rooms) {
       p.textContent = t;
       body.appendChild(p);
     });
+    $('flipLabel').textContent = turn;
+    $('loveQ').textContent = question;
+    $('loveYes').textContent = yes;
+    $('loveNo').textContent = no;
+    $('loveNote').hidden = true;
+    $('btnLoveYes').hidden = false;
+    $('btnLoveNo').hidden = false;
+    const flipper = $('flipper');
+    flipper.classList.remove('is-flipped');
     const sheet = $('loveLetter');
     sheet.hidden = false;
-    app.dataset.overlay = 'loveLetter';
-    gsap.fromTo(sheet.querySelector('.lovesheet__card'), { opacity: 0, y: 30, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: d(1.0), ease: 'power3.out' });
-    const next = $('btnLoveNext');
-    next.onclick = () => {
+    app.dataset.overlay = 'note';
+    gsap.fromTo(flipper, { opacity: 0, y: 30, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: d(1.0), ease: 'power3.out' });
+    $('btnFlip').onclick = () => {
+      flipper.classList.add('is-flipped');
+      setTimeout(() => $('btnLoveYes').focus({ preventScroll: true }), d(900));
+    };
+    $('btnLoveYes').onclick = () => {
       sheet.hidden = true;
       app.dataset.overlay = '';
-      onContinue();
+      onYes();
     };
-    next.focus({ preventScroll: true });
+    $('btnLoveNo').onclick = () => {
+      $('loveNote').textContent = notMessage;
+      $('loveNote').hidden = false;
+      $('btnLoveYes').hidden = true;
+      $('btnLoveNo').hidden = true;
+      setTimeout(() => {
+        sheet.hidden = true;
+        app.dataset.overlay = '';
+        onNo();
+      }, 3200);
+    };
+    $('btnFlip').focus({ preventScroll: true });
   };
 
-  ui.openProposal = ({ eyebrow, question, yes, no }) => {
-    $('propEyebrow').textContent = eyebrow || '';
-    $('propTitle').textContent = question;
-    $('propYes').textContent = yes;
-    $('propNo').textContent = no;
-    $('propNote').hidden = true;
-    $('btnYes').hidden = false;
-    $('btnNotYet').hidden = false;
-    const p = $('proposal');
-    p.hidden = false;
-    app.dataset.overlay = 'proposal';
-    gsap.fromTo(p.querySelector('.proposal__card'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: d(0.9), ease: 'power3.out' });
-    $('btnYes').focus({ preventScroll: true });
-  };
-  ui.showNotYet = (note) => {
-    $('propNote').textContent = note;
-    $('propNote').hidden = false;
-    $('btnYes').hidden = true;
-    $('btnNotYet').hidden = true;
-    setTimeout(() => ui.closeProposal(), 3200);
-  };
-  ui.closeProposal = () => {
-    const p = $('proposal');
-    if (p.hidden) return;
-    gsap.to(p, {
-      opacity: 0,
-      duration: d(0.6),
-      onComplete: () => {
-        p.hidden = true;
-        p.style.opacity = '';
-        app.dataset.overlay = '';
-      },
-    });
-  };
   ui.showCelebrate = (title, text) => {
     $('celebrateTitle').textContent = title;
     $('celebrateText').textContent = text;
@@ -494,6 +505,29 @@ export function createUI(content, rooms) {
     c.hidden = false;
     gsap.fromTo(c, { opacity: 0 }, { opacity: 1, duration: d(0.6) });
     setTimeout(() => gsap.to(c, { opacity: 0, duration: d(1.2), onComplete: () => (c.hidden = true) }), 9000);
+  };
+
+  /* ───────── how to explore ───────── */
+  ui.showGuide = ({ title, steps, done }, onClose) => {
+    $('guideTitle').textContent = title;
+    $('btnGuideDone').textContent = done;
+    const list = $('guideSteps');
+    list.replaceChildren();
+    steps.forEach((t) => {
+      const li = document.createElement('li');
+      li.textContent = t;
+      list.appendChild(li);
+    });
+    const g = $('guide');
+    g.hidden = false;
+    app.dataset.overlay = 'guide';
+    gsap.fromTo(g.querySelector('.guide__card'), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: d(0.7), ease: 'power2.out' });
+    $('btnGuideDone').onclick = () => {
+      g.hidden = true;
+      app.dataset.overlay = '';
+      onClose?.();
+    };
+    $('btnGuideDone').focus({ preventScroll: true });
   };
 
   ui.dispose = () => {

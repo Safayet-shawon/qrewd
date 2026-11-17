@@ -30,7 +30,8 @@ export function buildVideos(ctx, L) {
   b.box(0.07, 0.01, len, 0, 0.006, zc, mats.roseGold, noRecv);
 
   const sideZs = { '-1': [], 1: [] };
-  content.videos.forEach((m, i) => {
+  // a frame only exists when it has a clip
+  content.videos.filter((m) => m.video).forEach((m, i) => {
     const side = i % 2 === 0 ? -1 : 1;
     const z = V.z0 - 3.4 - i * V.spacing;
     sideZs[side].push(z);
