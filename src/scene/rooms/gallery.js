@@ -5,9 +5,9 @@ import { createFrame } from '../frames.js';
 import { asset } from '../../core/assets.js';
 
 /** Room B — a long corridor with one framed photograph per memory. */
-export function buildGallery(ctx, L) {
-  const { batch: b, mats, content, lights } = ctx;
-  const B = L.memories;
+export function buildGallery(ctx, L, { room = 'memories', list = ctx.content.memories, kind = 'memory' } = {}) {
+  const { batch: b, mats, lights } = ctx;
+  const B = L[room];
   const half = B.half;
   const len = Math.abs(B.z1 - B.z0);
   const zc = (B.z0 + B.z1) / 2;
@@ -30,14 +30,14 @@ export function buildGallery(ctx, L) {
   ctx.disposables.push(washTex, washMat);
 
   const sideZs = { '-1': [], 1: [] };
-  content.memories.forEach((m, i) => {
+  list.forEach((m, i) => {
     const side = i % 2 === 0 ? -1 : 1;
     const z = B.z0 - 3.4 - i * B.spacing;
     sideZs[side].push(z);
     const wallX = side * (half - 0.0);
     const item = createFrame(
       ctx,
-      { kind: 'memory', index: i, title: m.title, date: m.date, image: m.image, url: asset(m.image), orientation: m.orientation || 'landscape' },
+      { kind, index: i, title: m.title, date: m.date || '', image: m.image, url: asset(m.image), orientation: m.orientation || 'portrait' },
       { pos: [wallX, 1.72, z], rotY: side === -1 ? Math.PI / 2 : -Math.PI / 2 },
     );
     item.data = m;

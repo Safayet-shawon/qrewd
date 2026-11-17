@@ -431,6 +431,28 @@ export function createUI(content, rooms) {
   });
 
   /* ───────── the question and the answer ───────── */
+  /** The sweet note after the cake; Continue leads to the question. */
+  ui.openLoveLetter = (paragraphs, onContinue) => {
+    const body = $('loveBody');
+    body.replaceChildren();
+    paragraphs.forEach((t) => {
+      const p = document.createElement('p');
+      p.textContent = t;
+      body.appendChild(p);
+    });
+    const sheet = $('loveLetter');
+    sheet.hidden = false;
+    app.dataset.overlay = 'loveLetter';
+    gsap.fromTo(sheet.querySelector('.lovesheet__card'), { opacity: 0, y: 30, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: d(1.0), ease: 'power3.out' });
+    const next = $('btnLoveNext');
+    next.onclick = () => {
+      sheet.hidden = true;
+      app.dataset.overlay = '';
+      onContinue();
+    };
+    next.focus({ preventScroll: true });
+  };
+
   ui.openProposal = ({ eyebrow, question, yes, no }) => {
     $('propEyebrow').textContent = eyebrow || '';
     $('propTitle').textContent = question;

@@ -14,21 +14,26 @@ import { createWeather, WEATHER_LABEL } from './weather/weather.js';
 import { skyTexture } from './textures.js';
 import { buildEntrance } from './rooms/entrance.js';
 import { buildGallery } from './rooms/gallery.js';
+import { buildVideos } from './rooms/videos.js';
+import { buildGallery as buildPictureRoom } from './rooms/gallery.js';
 import { buildHeartRoom } from './rooms/heartRoom.js';
 import { buildTimeline } from './rooms/timeline.js';
 import { buildLetterRoom } from './rooms/letterRoom.js';
 import { buildFinale } from './rooms/finale.js';
 
-export const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter', 'finale'];
+export const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'timeline', 'letter', 'pictures', 'finale'];
 
 function computeLayout(content) {
   const nM = content.memories.length;
+  const nV = content.videos.length;
   const nT = content.timeline.length;
   const entrance = { key: 'entrance', z0: 0, z1: -16, half: 7, h: 6.5, plaque: { z: -7 } };
   const memSpacing = 2.9;
   const memories = { key: 'memories', z0: entrance.z1, half: 4, h: 5.4, spacing: memSpacing };
   memories.z1 = memories.z0 - (nM ? 6.8 + (nM - 1) * memSpacing : 8);
-  const heart = { key: 'heart', z0: memories.z1, half: 9, h: 8 };
+  const videos = { key: 'videos', z0: memories.z1, half: 4, h: 5.4, spacing: 3.4 };
+  videos.z1 = videos.z0 - (nV ? 6.8 + (nV - 1) * videos.spacing : 8);
+  const heart = { key: 'heart', z0: videos.z1, half: 9, h: 8 };
   heart.z1 = heart.z0 - 18;
   heart.zc = (heart.z0 + heart.z1) / 2;
   const tlSpacing = 3.3;
@@ -37,11 +42,14 @@ function computeLayout(content) {
   const letter = { key: 'letter', z0: timeline.z1, half: 4.5, h: 5.6 };
   letter.z1 = letter.z0 - 14;
   letter.pedestalZ = letter.z1 + 3.9;
-  const finale = { key: 'finale', z0: letter.z1, half: 4.5, h: 5.6 };
+  const nP = content.pictures.length;
+  const pictures = { key: 'pictures', z0: letter.z1, half: 4, h: 5.4, spacing: 2.9 };
+  pictures.z1 = pictures.z0 - (nP ? 6.8 + (nP - 1) * pictures.spacing : 8);
+  const finale = { key: 'finale', z0: pictures.z1, half: 4.5, h: 5.6 };
   finale.z1 = finale.z0 - 12;
   finale.zc = (finale.z0 + finale.z1) / 2;
   finale.pedestalZ = finale.z1 + 3.6;
-  return { entrance, memories, heart, timeline, letter, finale };
+  return { entrance, memories, videos, heart, timeline, letter, pictures, finale };
 }
 
 function fovFor(aspect) {
@@ -131,19 +139,23 @@ export async function createMuseum(canvas, content, quality) {
   };
   room(buildEntrance);
   room(buildGallery);
+  room(buildVideos);
   room(buildHeartRoom);
   room(buildTimeline);
   room(buildLetterRoom);
+  room((c, l) => buildPictureRoom(c, l, { room: 'pictures', list: c.content.pictures, kind: 'picture' }));
   room(buildFinale);
 
   // partitions between rooms (with arched doorways)
   ctx.batch = new Batcher();
   const parts = [
     [L.entrance.z1, Math.max(L.entrance.half, L.memories.half), Math.max(L.entrance.h, L.memories.h)],
-    [L.memories.z1, Math.max(L.memories.half, L.heart.half), Math.max(L.memories.h, L.heart.h)],
+    [L.memories.z1, Math.max(L.memories.half, L.videos.half), Math.max(L.memories.h, L.videos.h)],
+    [L.videos.z1, Math.max(L.videos.half, L.heart.half), Math.max(L.videos.h, L.heart.h)],
     [L.heart.z1, Math.max(L.heart.half, L.timeline.half), Math.max(L.heart.h, L.timeline.h)],
     [L.timeline.z1, Math.max(L.timeline.half, L.letter.half), Math.max(L.timeline.h, L.letter.h)],
-    [L.letter.z1, Math.max(L.letter.half, L.finale.half), Math.max(L.letter.h, L.finale.h)],
+    [L.letter.z1, Math.max(L.letter.half, L.pictures.half), Math.max(L.letter.h, L.pictures.h)],
+    [L.pictures.z1, Math.max(L.pictures.half, L.finale.half), Math.max(L.pictures.h, L.finale.h)],
   ];
   for (const [z, half, h] of parts) {
     ctx.batch.add(partitionGeometry({ width: half * 2 + 1.1, height: h, thickness: 0.6 }), mats.plaster, matrix(0, 0, z), { cast: true });
@@ -191,6 +203,19 @@ export async function createMuseum(canvas, content, quality) {
       cue: 'View photograph',
     });
   });
+  const vidItems = ctx.items.filter((i) => i.kind === 'video');
+  vidItems.forEach((item, i) => {
+    const side = item.focus.center.x < 0 ? -1 : 1;
+    const z = item.focus.center.z;
+    addStop({
+      room: 'videos',
+      label: `${names.videos.name} · ${i + 1} of ${vidItems.length}`,
+      pos: V(-side * 0.35, 1.66, z + 1.5),
+      look: V(side * L.videos.half, 1.62, z - 0.3),
+      featured: item,
+      cue: 'Play',
+    });
+  });
   addStop({
     room: 'heart',
     label: names.heart.name,
@@ -223,6 +248,19 @@ export async function createMuseum(canvas, content, quality) {
     featured: ctx.refs.letter.item,
     cue: 'Open the letter',
   });
+  const picItems = ctx.items.filter((i) => i.kind === 'picture');
+  picItems.forEach((item, i) => {
+    const side = item.focus.center.x < 0 ? -1 : 1;
+    const z = item.focus.center.z;
+    addStop({
+      room: 'pictures',
+      label: `${names.pictures.name} · ${i + 1} of ${picItems.length}`,
+      pos: V(-side * 0.35, 1.66, z + 1.5),
+      look: V(side * L.pictures.half, 1.62, z - 0.3),
+      featured: item,
+      cue: 'Read',
+    });
+  });
   addStop({
     room: 'finale',
     label: names.finale.name,
@@ -242,6 +280,7 @@ export async function createMuseum(canvas, content, quality) {
 
   /* ───────────── The couple (walk mode) ───────────── */
   const companion = createCompanion(scene, L, ctx.items, content.timeline.length);
+  ctx.player = () => companion.girlPosition();
   let wind = { x: 0, z: 0 };
   let lastRoom = -1;
   let lastNearby = null;

@@ -190,6 +190,9 @@ export function createFrame(ctx, spec, placement) {
     gsap.to(imgMat, { opacity: 1, duration: ctx.reduced() ? 0.01 : 0.9, ease: 'power1.out' });
   };
 
+  // a video (or any texture) can take the picture's place, fitted at its own aspect ratio
+  item.applyTexture = apply;
+
   item.load = () => {
     if (applied) return applied;
     applied = ctx.images.load(spec.url).then((res) => {

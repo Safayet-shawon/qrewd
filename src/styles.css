@@ -602,6 +602,41 @@ svg {
   border-color: rgba(240, 220, 180, 0.75);
 }
 
+.lovesheet {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  padding: var(--gut);
+  background: rgba(24, 16, 13, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.lovesheet__card {
+  width: min(32rem, 100%);
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.6rem);
+  background: radial-gradient(120% 90% at 50% 0%, #fdf8ef 0%, #f3e6d2 100%);
+  color: var(--ink);
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+}
+.lovesheet__card .eyebrow {
+  color: var(--champagne-deep);
+}
+.lovesheet__body p {
+  margin: 0 0 1rem;
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 3.4vw, 1.4rem);
+  line-height: 1.6;
+  color: #43362e;
+}
+.lovesheet__card .btn {
+  margin-top: 1rem;
+}
 .proposal {
   position: absolute;
   inset: 0;

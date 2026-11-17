@@ -39,6 +39,8 @@ export const museumContent = {
     heart: { name: 'The Heart Room', blurb: 'The centre of everything' },
     timeline: { name: 'Our Little Timeline', blurb: 'Moments, in order' },
     letter: { name: 'The Final Letter', blurb: 'Saved for last' },
+    videos: { name: 'Moments in Motion', blurb: 'Little clips, playing on loop' },
+    pictures: { name: 'Only the Pictures', blurb: 'Still, and full of feeling' },
     finale: { name: 'The Sweet Sixteen', blurb: 'One last thing' },
   },
 
@@ -167,6 +169,31 @@ export const museumContent = {
     },
   ],
 
+  // ── Room — Only the Pictures: photographs with a line of feeling each ──────
+  pictures: [
+    { title: 'A Look', caption: 'Some moments need no words, and this is one of them.' },
+    { title: 'Warm and Real', caption: 'The kind of smile that makes everything else feel quiet.' },
+    { title: 'Golden Light', caption: 'In this light you look like a memory I already love.' },
+    { title: 'Just Us', caption: 'Being yours is the easiest thing I have ever done.' },
+    { title: 'Soft Colours', caption: 'You bring colour into every day I spend with you.' },
+    { title: 'Blue and Gold', caption: 'Even the background cannot compete with how you look.' },
+    { title: 'Quiet Happiness', caption: 'This is what calm happiness looks like, and it looks like you.' },
+    { title: 'Always You', caption: 'Out of all the faces I could look at, yours is the one I choose.' },
+  ],
+
+  // ── Room — Moments in Motion: short clips that loop, one per frame ───────────
+  // Each clip is in public/video/. It plays (muted) while the visitor is near.
+  videos: [
+    { title: 'Still Happy', caption: 'Watching this again feels like the first time, every time.', video: 'video/clip-01.mp4' },
+    { title: 'Our Little Loop', caption: 'I would happily watch this moment on repeat for the rest of my life.', video: 'video/clip-02.mp4' },
+    { title: 'Laughter', caption: 'The sound of your laugh is the best part of every clip.', video: 'video/clip-03.mp4' },
+    { title: 'Soft Light', caption: 'Even in simple light, you look like the most beautiful thing I know.', video: 'video/clip-04.mp4' },
+    { title: 'Quick Smile', caption: 'A short clip, but it holds the whole feeling of being with you.', video: 'video/clip-05.mp4' },
+    { title: 'Another Day', caption: 'Every ordinary day with you turns into a memory worth keeping.', video: 'video/clip-06.mp4' },
+    { title: 'In Motion', caption: 'Walking, turning, smiling: you are my favourite place to look.', video: 'video/clip-07.mp4' },
+    { title: 'The Last Clip', caption: 'Thank you for every little moment we have shared.', video: 'video/clip-08.mp4' },
+  ],
+
   // ── Room C — the heart ─────────────────────────────────────────────────────
   heart: {
     // Engraved above the far doorway and shown when you arrive.
@@ -229,6 +256,12 @@ export const museumContent = {
 
   // ── Room F — the finale: a cake, then one question ────────────────────────
   finale: {
+    // A sweet love letter, revealed when the cake is opened and then closed.
+    loveLetter: [
+      'My dearest,',
+      'Every page of this little world is a small way of saying what my words sometimes cannot. You make ordinary days feel like the best ones, and every picture here is proof.',
+      'So here is my sweetest question, written just for you.',
+    ],
     // Shown on the cake's wall plate (two lines) and in the panel when the cake is opened.
     cakeTitle: 'Be my queen',
     cakeSubtitle: 'The forever sweet 16',

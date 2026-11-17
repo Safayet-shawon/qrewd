@@ -9,7 +9,7 @@ const WALL_MARGIN = 0.8;
 const DOOR_HALF = DOOR.w / 2 - 0.25;
 const FACADE_Z = 0;
 const OUTSIDE_Z = 7;
-const NEAR = { plaque: 4.0, heart: 4.9, letter: 4.0, milestone: 4.7, memory: 4.6, cake: 4.2 };
+const NEAR = { plaque: 4.0, heart: 4.9, letter: 4.0, milestone: 4.7, memory: 4.6, video: 4.6, cake: 4.2 };
 const NEAR_DEFAULT = 3.6;
 const FACING = 0.35; // how square-on the visitor must be to read a piece
 const EYE_HEIGHT = 1.65;
@@ -45,7 +45,7 @@ export function createCompanion(scene, L, items, timelineCount) {
   // the couple is not shown: the visitor is the only person in first person
   const { girl, boy } = couple;
 
-  const partitions = [FACADE_Z, L.entrance.z1, L.memories.z1, L.heart.z1, L.timeline.z1];
+  const partitions = [FACADE_Z, L.entrance.z1, L.memories.z1, L.videos.z1, L.heart.z1, L.timeline.z1];
   const obstacles = buildObstacles(L, timelineCount);
 
   const input = { x: 0, y: 0, turn: 0 };
@@ -57,6 +57,7 @@ export function createCompanion(scene, L, items, timelineCount) {
     if (z > 0) return 11;
     if (z > L.entrance.z1) return 7;
     if (z > L.memories.z1) return 4;
+    if (z > L.videos.z1) return 4;
     if (z > L.heart.z1) return 9;
     if (z > L.timeline.z1) return 4;
     return 4.5;
@@ -65,9 +66,11 @@ export function createCompanion(scene, L, items, timelineCount) {
   function roomAt(z) {
     if (z > L.entrance.z1) return 0;
     if (z > L.memories.z1) return 1;
-    if (z > L.heart.z1) return 2;
-    if (z > L.timeline.z1) return 3;
-    return 4;
+    if (z > L.videos.z1) return 2;
+    if (z > L.heart.z1) return 3;
+    if (z > L.timeline.z1) return 4;
+    if (z > L.letter.z1) return 5;
+    return 6;
   }
 
   function clampInside(p, margin) {

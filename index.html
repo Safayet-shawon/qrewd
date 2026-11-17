@@ -125,6 +125,15 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="sr" class="sr" aria-live="polite"></div>
 
+      <!-- The sweet love letter, shown after the cake -->
+      <section id="loveLetter" class="lovesheet" role="dialog" aria-modal="true" aria-labelledby="loveTitle" hidden>
+        <div class="lovesheet__card">
+          <p class="eyebrow">A little note</p>
+          <div id="loveBody" class="lovesheet__body"></div>
+          <button id="btnLoveNext" class="btn btn--paper" type="button">Continue</button>
+        </div>
+      </section>
+
       <!-- The question at the end -->
       <section id="proposal" class="proposal" role="dialog" aria-modal="true" aria-labelledby="propTitle" hidden>
         <div class="proposal__card">

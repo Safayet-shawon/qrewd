@@ -6,7 +6,7 @@ import { createUI } from './ui/ui.js';
 import { createAudio } from './ui/audio.js';
 import { buildFallback } from './ui/fallback.js';
 
-const ROOM_KEYS = ['entrance', 'memories', 'heart', 'timeline', 'letter', 'finale'];
+const ROOM_KEYS = ['entrance', 'memories', 'videos', 'heart', 'timeline', 'letter', 'pictures', 'finale'];
 const rooms = ROOM_KEYS.map((key, index) => ({ key, index, name: content.rooms[key].name, blurb: content.rooms[key].blurb }));
 
 const app = document.getElementById('app');
@@ -26,11 +26,27 @@ let ready = null;
 
 /* ───────────────────────── Overlay content ───────────────────────── */
 
-const lists = { memory: content.memories, milestone: content.timeline };
+const lists = { memory: content.memories, milestone: content.timeline, video: content.videos, picture: content.pictures };
 const group = (kind) => museum.items.filter((i) => i.kind === kind).sort((a, b) => a.index - b.index);
 
 /** Text for the information panel. `withImage` is only used when there is no 3D view. */
 function describe(kind, index, withImage) {
+  if (kind === 'picture') {
+    const list = lists.picture;
+    const m = list[index];
+    return { eyebrow: `Picture ${index + 1} of ${list.length}`, title: m.title, date: '', text: m.caption, count: `${index + 1} / ${list.length}` };
+  }
+  if (kind === 'video') {
+    const list = lists.video;
+    const m = list[index];
+    return {
+      eyebrow: `Clip ${index + 1} of ${list.length}`,
+      title: m.title,
+      date: '',
+      text: m.caption,
+      count: `${index + 1} / ${list.length}`,
+    };
+  }
   if (kind === 'memory' || kind === 'milestone') {
     const list = lists[kind];
     const m = list[index];
@@ -143,9 +159,9 @@ async function closeOverlay() {
     await museum.unfocus();
   } else {
     await Promise.all([ui.closePanel(), museum?.unfocus()]);
-    // the cake's message comes first; closing it asks the question
+    // the cake's message comes first; then the sweet note; then the question
     if (closedKind === 'cake') {
-      openProposal();
+      ui.openLoveLetter(content.finale.loveLetter, openProposal);
       return;
     }
   }
