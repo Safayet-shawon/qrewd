@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.log
 .vercel
+
+# local test track only, never publish or commit
+public/audio/ambient.mp3
