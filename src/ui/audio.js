@@ -14,7 +14,7 @@ export function createAudio(path, { onChange, onError }) {
   function ensure() {
     if (el) return el;
     el = new Audio();
-    el.loop = false; // the track plays through once, then stops
+    el.loop = true; // plays to the end, then starts again
     el.preload = 'none';
     el.volume = 0;
     el.src = asset(path);
